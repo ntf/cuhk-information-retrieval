@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="search-engine/lucene-4.10.1/core/lucene-core-4.10.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-csv-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="search-engine/lucene-4.10.1/analysis/common/lucene-analyzers-common-4.10.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-collections4-4.0.jar"/>
+	<classpathentry kind="lib" path="lib/trove-3.1a1.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

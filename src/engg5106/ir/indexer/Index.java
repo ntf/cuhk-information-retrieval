@@ -14,17 +14,18 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 import engg5106.ir.Document;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 
 public class Index implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	public String test;
 	protected transient Analyzer analyzer;
 
+	protected int HashMapCount = 0;
 	protected int documentCount = 0;
 	protected Map<String, Document> documents;
 	protected transient DualHashBidiMap<String, Integer> documentDictionary;
@@ -36,7 +37,7 @@ public class Index implements Serializable {
 	 * fieldName , TermId , DocId, TermDocumentFrequency size of ArrayList =
 	 * DocumentFrequency
 	 */
-	protected THashMap<String, THashMap<Integer, THashMap<Integer, Integer>>> index;
+	protected THashMap<String, TIntObjectHashMap<TIntIntHashMap>> index;
 
 	private transient IndexOptions[] options;
 
@@ -47,7 +48,7 @@ public class Index implements Serializable {
 		this.termDictionary = new DualHashBidiMap<String, Integer>();
 		this.documentDictionary = new DualHashBidiMap<String, Integer>();
 
-		this.index = new THashMap<String, THashMap<Integer, THashMap<Integer, Integer>>>();
+		this.index = new THashMap<String, TIntObjectHashMap<TIntIntHashMap>>();
 		this.initialize();
 	}
 
@@ -76,9 +77,9 @@ public class Index implements Serializable {
 
 		// Index implementation
 		for (IndexOptions option : this.options) {
-			THashMap<Integer, THashMap<Integer, Integer>> tierIndex;
+			TIntObjectHashMap<TIntIntHashMap> tierIndex;
 			if (!index.containsKey(option.getField())) {
-				tierIndex = new THashMap<Integer, THashMap<Integer, Integer>>();
+				tierIndex = new TIntObjectHashMap<TIntIntHashMap>();
 				index.put(option.getField(), tierIndex);
 			} else {
 				tierIndex = index.get(option.getField());
@@ -99,6 +100,7 @@ public class Index implements Serializable {
 						this.addDocumentToTerm(tierIndex, docId, termId);
 					}
 					tokens.clear();
+					
 				} else if (option.getType() == IndexOptions.Type.Keyword) {
 					if (this.termDictionary.containsKey(value)) {
 						termId = this.termDictionary.get(value);
@@ -113,47 +115,25 @@ public class Index implements Serializable {
 		}
 	}
 
-	public void addDocumentToTerm(
-			THashMap<Integer, THashMap<Integer, Integer>> tierIndex,
-			Document doc, String term) {
-		int termId, docId;
 
-		if (this.termDictionary.containsKey(term)) {
-			termId = this.termDictionary.get(term);
-		} else {
-			this.termDictionary.put(term, this.termCount);
-			termId = this.termCount;
-			this.termCount++;
-		}
+	public void addDocumentToTerm(TIntObjectHashMap<TIntIntHashMap> tierIndex,
+			int docId, int termId) {
 
-		String key = doc.key();
-		if (this.documents.containsKey(key)) {
-			docId = this.documentDictionary.get(key);
-		} else {
-			this.documentDictionary.put(key, this.documentCount);
-			docId = this.documentCount;
-			this.documentCount++;
-		}
-		this.addDocumentToTerm(tierIndex, docId, termId);
-	}
-
-	public void addDocumentToTerm(
-			THashMap<Integer, THashMap<Integer, Integer>> tierIndex, int docId,
-			int termId) {
-
-		THashMap<Integer, Integer> termIndex;
+		TIntIntHashMap termIndex;
 
 		if (!tierIndex.containsKey(termId)) {
-			termIndex = new THashMap<Integer, Integer>();
+			termIndex = new TIntIntHashMap();
 			tierIndex.put(termId, termIndex);
+			HashMapCount++;
 		} else {
 			termIndex = tierIndex.get(termId);
 		}
 
 		if (!termIndex.containsKey(docId)) {
 			termIndex.put(docId, 1);
+			HashMapCount++;
 		} else {
-			termIndex.put(docId, termIndex.get(docId) + 1);
+			termIndex.put(docId, (termIndex.get(docId) + 1));
 		}
 	}
 
@@ -208,5 +188,10 @@ public class Index implements Serializable {
 
 	public int getDocumentCount() {
 		return this.documentCount;
+	}
+
+	public void debug() {
+		System.out.println("debug");
+
 	}
 }

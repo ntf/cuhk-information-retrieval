@@ -68,7 +68,7 @@ public class Indexer {
 
 			System.out.println("Total documents: "
 					+ indexer.getIndex().getDocumentCount());
-			// indexer.getIndex().listDocuments();
+			 indexer.getIndex().debug();
 			indexer.save();
 		} catch (IOException e) {
 			e.printStackTrace();

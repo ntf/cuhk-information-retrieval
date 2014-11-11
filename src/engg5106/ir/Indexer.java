@@ -65,9 +65,11 @@ public class Indexer {
 				parser.close();
 				in.close();
 			}
-
+			System.gc();
+			System.runFinalization();
 			System.out.println("Total documents: "
 					+ indexer.getIndex().getDocumentCount());
+			
 			 indexer.getIndex().debug();
 			indexer.save();
 		} catch (IOException e) {

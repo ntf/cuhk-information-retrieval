@@ -6,7 +6,6 @@
 	<classpathentry kind="lib" path="lib/commons-codec-1.10.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections4-4.0.jar"/>
 	<classpathentry kind="lib" path="lib/trove-3.1a1.jar"/>
-	<classpathentry kind="lib" path="lib/mapdb-1.0.6-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/mapdb-1.1.0-20140730.195452-13.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-4.10.1.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-4.10.1.jar"/>

@@ -1,5 +1,6 @@
 package engg5106.ir;
 
+import org.mapdb.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,13 +26,17 @@ public class Indexer {
 		try {
 			// Indexer indexer = Indexer.open(new File("index/index1000"));
 
-			Indexer indexer = new Indexer(new File("index/index100"));
+			Indexer indexer = new Indexer(new File("index/index400"));
 			indexer.setOptions(new IndexOptions[] {
 					// new IndexOptions("subreddit", IndexOptions.Type.Keyword),
 					// new IndexOptions("domain", IndexOptions.Type.Keyword),
 					new IndexOptions("title", IndexOptions.Type.Tokenize),
 					new IndexOptions("content", IndexOptions.Type.Tokenize) });
-			File[] inputs = new File("sample/100/")
+
+			indexer.ready();
+
+		
+			File[] inputs = new File("sample/400/")
 					.listFiles(new FilenameFilter() {
 						public boolean accept(File dir, String name) {
 							return name.toLowerCase().endsWith(".csv");
@@ -65,12 +70,10 @@ public class Indexer {
 				parser.close();
 				in.close();
 			}
-			System.gc();
-			System.runFinalization();
-			System.out.println("Total documents: "
-					+ indexer.getIndex().getDocumentCount());
-			
-			 indexer.getIndex().debug();
+		
+
+		//	indexer.getIndex().listDocuments();
+			indexer.getIndex().debug();
 			indexer.save();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -91,58 +94,59 @@ public class Indexer {
 		this.index.setOptions(options);
 	}
 
+	public Index ready() {
+		DB db = DBMaker.newFileDB(new File(this.indexFile + "-db"))
+				.closeOnJvmShutdown().transactionDisable().make();
+		index.setDB(db);
+
+		index.initialize();
+		return this.index;
+	}
+
 	public Index getIndex() {
 		return this.index;
 	}
 
 	public void save() throws IOException {
-
-		ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(
-				this.indexFile + "index"));
-		oos.writeObject(this.index);
-		oos.close();
-
-		oos = new ObjectOutputStream(new FileOutputStream(this.indexFile
-				+ "documents"));
-		oos.writeObject(this.index.getDocumentDictionary());
-		oos.close();
-
-		oos = new ObjectOutputStream(new FileOutputStream(this.indexFile
-				+ "terms"));
-		oos.writeObject(this.index.getTermDictionary());
-		oos.close();
+		System.out.println("DB commit start");
+		index.db.commit();
+		System.out.println("DB commit end");
+		/*
+		 * ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(
+		 * this.indexFile + "-index")); oos.writeObject(this.index);
+		 * oos.close();
+		 */
 	}
 
 	@SuppressWarnings("unchecked")
 	static public Indexer open(File f) throws IOException,
 			ClassNotFoundException {
-		ObjectInputStream objectinputstream = new ObjectInputStream(
-				new FileInputStream(f  + "index"));
-		Index index = (Index) objectinputstream.readObject();
-		objectinputstream.close();
-
-		
-		objectinputstream = new ObjectInputStream(new FileInputStream(f
-				+ "documents"));
-		DualHashBidiMap<String, Integer> documents = (DualHashBidiMap<String, Integer>) objectinputstream
-				.readObject();
-		index.setDocumentDictionary(documents);
-
-		objectinputstream.close();
-		
-		
-		objectinputstream = new ObjectInputStream(new FileInputStream(f
-				+ "terms"));
-		DualHashBidiMap<String, Integer> terms = (DualHashBidiMap<String, Integer>) objectinputstream
-				.readObject();
-		index.setTermDictionary(terms);
-
-		objectinputstream.close();
-
+		/*
+		 * ObjectInputStream objectinputstream = new ObjectInputStream( new
+		 * FileInputStream(f + "-index")); Index index = (Index)
+		 * objectinputstream.readObject(); objectinputstream.close();
+		 * 
+		 * objectinputstream = new ObjectInputStream(new FileInputStream(f +
+		 * "-documents")); DualHashBidiMap<String, Integer> documents =
+		 * (DualHashBidiMap<String, Integer>) objectinputstream .readObject();
+		 * index.setDocumentDictionary(documents);
+		 * 
+		 * objectinputstream.close();
+		 * 
+		 * objectinputstream = new ObjectInputStream(new FileInputStream(f +
+		 * "-terms")); DualHashBidiMap<String, Integer> terms =
+		 * (DualHashBidiMap<String, Integer>) objectinputstream .readObject();
+		 * index.setTermDictionary(terms); objectinputstream.close();
+		 * 
+		 * // configure and open database using builder pattern. // all options
+		 * are available with code auto-completion. DB db =
+		 * DBMaker.newFileDB(new File(f + "-db")).closeOnJvmShutdown()
+		 * .encryptionEnable("engg5106").make(); db. index.setDB(db);
+		 */
 		Indexer indexer = new Indexer(f);
-		indexer.index = index;
-		index.initialize();
+		// indexer.index = index;
 
 		return indexer;
+
 	}
 }

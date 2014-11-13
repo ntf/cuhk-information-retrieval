@@ -8,6 +8,8 @@ public class TfIdfWeightedDocumentTermMatrix implements IMatrix {
 	public double[][] reverseIndex;
 	protected int[][] tf;
 	protected int[] df;
+	protected int[] doc_length;
+	protected double avgDocLen ;
 
 	public TfIdfWeightedDocumentTermMatrix(int termCount, int documentCount) {
 		this.termCount = termCount;
@@ -16,6 +18,9 @@ public class TfIdfWeightedDocumentTermMatrix implements IMatrix {
 		this.reverseIndex = new double[documentCount + 1][termCount + 1];
 		this.tf = new int[termCount + 1][documentCount + 1];
 		this.df = new int[termCount + 1];
+		this.doc_length = new int[documentCount + 1];
+		this.avgDocLen =0.0;
+		
 	}
 
 	public int sizeOfTerm() {
@@ -41,12 +46,27 @@ public class TfIdfWeightedDocumentTermMatrix implements IMatrix {
 	public int getDocFrequencies(int term) {
 		return this.df[term];
 	}
+	
+	public int getDocLenght(int doc) {
+		return this.doc_length[doc];
+	}
+	
+	public double getAvgDocLenght() {
+		for (int i=1;i<documentCount;i++)
+		{
+			avgDocLen += doc_length[i];
+			
+		}
+		avgDocLen = avgDocLen/documentCount;
+		return this.avgDocLen;
+	}
 
 	public void add(int term, int doc) {
 		if (term <= 0 && doc <= 0 && term > termCount && doc > documentCount) {
 			throw new IllegalArgumentException("");
 		}
 		this.tf[term][doc]++;
+		this.doc_length[doc]++;
 	}
 
 	public void add(int term, int doc, int count) {
@@ -55,6 +75,7 @@ public class TfIdfWeightedDocumentTermMatrix implements IMatrix {
 		}
 		this.tf[term][doc] += count;
 		this.reverseIndex[doc][term] += count;
+		this.doc_length[doc]++;
 	}
 
 	/**

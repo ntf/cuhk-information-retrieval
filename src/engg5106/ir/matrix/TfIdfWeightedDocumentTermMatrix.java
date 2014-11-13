@@ -37,6 +37,10 @@ public class TfIdfWeightedDocumentTermMatrix implements IMatrix {
 	public int getFrequencies(int term, int doc) {
 		return this.tf[term][doc];
 	}
+	
+	public int getDocFrequencies(int term) {
+		return this.df[term];
+	}
 
 	public void add(int term, int doc) {
 		if (term <= 0 && doc <= 0 && term > termCount && doc > documentCount) {

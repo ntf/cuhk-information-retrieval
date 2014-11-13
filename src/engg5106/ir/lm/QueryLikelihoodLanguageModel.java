@@ -3,7 +3,11 @@ package engg5106.ir.lm;
 import java.util.HashMap;
 
 import engg5106.ir.smoothing.JelinekMercerSmoothing;
-
+/**
+ * 
+ * @author NTF
+ *@deprecated
+ */
 public class QueryLikelihoodLanguageModel {
 
 	private HashMap<Integer, Integer> map;

@@ -19,14 +19,24 @@ import org.apache.commons.csv.CSVRecord;
 import engg5106.ir.indexer.Index;
 import engg5106.ir.indexer.IndexOptions;
 
+/**
+ * Use this class to index reddit posts
+ * 
+ * @author NTF
+ *
+ */
 public class Indexer {
 
 	public static void main(String[] args) throws ClassNotFoundException {
 
+		System.out.println("Indexer");
 		try {
+			// setup the index location
 			// Indexer indexer = Indexer.open(new File("index/index1000"));
 
 			Indexer indexer = new Indexer(new File("index/index400"));
+
+			// Index configuration , multiple tiers
 			indexer.setOptions(new IndexOptions[] {
 					// new IndexOptions("subreddit", IndexOptions.Type.Keyword),
 					// new IndexOptions("domain", IndexOptions.Type.Keyword),
@@ -35,7 +45,7 @@ public class Indexer {
 
 			indexer.ready();
 
-		
+			// read file from a directory
 			File[] inputs = new File("sample/400/")
 					.listFiles(new FilenameFilter() {
 						public boolean accept(File dir, String name) {
@@ -53,6 +63,8 @@ public class Indexer {
 
 				String subreddit = file.getName().split("[.]", 2)[0];
 				for (CSVRecord record : parser) {
+
+					// construct document
 					Document doc = new Document();
 					doc.addField("subreddit", subreddit);
 					doc.addField("title", record.get("title"));
@@ -65,16 +77,18 @@ public class Indexer {
 					doc.addField("permalink", record.get("permalink"));
 					doc.addField("domain", record.get("domain"));
 					doc.addField("url", record.get("url"));
+
+					// add to index
 					indexer.getIndex().add(doc);
 				}
 				parser.close();
 				in.close();
 			}
-		
 
-		//	indexer.getIndex().listDocuments();
+			// indexer.getIndex().listDocuments();
 			indexer.getIndex().debug();
 			indexer.save();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -110,7 +124,19 @@ public class Indexer {
 	public void save() throws IOException {
 		System.out.println("DB commit start");
 		index.db.commit();
+
 		System.out.println("DB commit end");
+		/*
+		 * ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(
+		 * this.indexFile + "-index")); oos.writeObject(this.index);
+		 * oos.close();
+		 */
+	}
+
+	public void optimize() {
+		System.out.println("DB optimize start");
+		index.db.compact();
+		System.out.println("DB optimize end");
 		/*
 		 * ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(
 		 * this.indexFile + "-index")); oos.writeObject(this.index);

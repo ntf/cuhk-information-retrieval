@@ -35,7 +35,7 @@ public class bm25 {
 		double lave =  tfidf.getAvgDocLenght() ; // Length of the average doc
 		
         StringTokenizer tokens = new StringTokenizer(query);
-        while(tokens.hasMoreTokens()) {
+      /*  while(tokens.hasMoreTokens()) {
 
         	tokens.nextToken()    // Take back the term id
 
@@ -43,7 +43,7 @@ public class bm25 {
 			def_rsv += Math.log10(n/df) * (((k1+1)*tfidf.getFrequencies(term, doc)) / (k1*((1-b)+b(ld/lave)+tfidf.getFrequencies(term, doc))))* (((k3+1)*tfq) / (k3 + tfq));
 	
 		
-		}
+		}*/
 		return def_rsv;
 	}
 	

@@ -10,7 +10,7 @@ import engg5106.ir.indexer.IIndexer;
 
 /**
  * @author NTF
- *
+ * @deprecated
  */
 public interface ICrawler {
 

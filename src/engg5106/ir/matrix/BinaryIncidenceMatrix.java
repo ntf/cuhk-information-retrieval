@@ -1,5 +1,10 @@
 package engg5106.ir.matrix;
 
+/**
+ * 
+ * @author NTF
+ * @deprecated
+ */
 public class BinaryIncidenceMatrix implements IMatrix {
 
 	protected int termCount;

@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 
 /**
  * @author NTF
- *
+ * @deprecated
  */
 public class SimpleIndexer implements IIndexer {
 

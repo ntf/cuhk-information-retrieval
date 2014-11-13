@@ -16,7 +16,7 @@ import engg5106.ir.indexer.IIndexer;
 
 /**
  * @author NTF
- *
+ * @deprecated
  */
 public class FileCrawler implements ICrawler {
 

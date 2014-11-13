@@ -2,6 +2,11 @@ package engg5106.ir.indexer;
 
 import java.io.Serializable;
 
+/**
+ * 
+ * @author NTF
+ * @deprecated
+ */
 public class TermFrequency implements Serializable {
 	/**
 	 * 

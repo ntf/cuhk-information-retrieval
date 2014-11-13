@@ -9,7 +9,7 @@ import java.util.LinkedHashMap;
 
 /**
  * @author NTF
- *
+ * @deprecated
  */
 public interface IIndexer {
 

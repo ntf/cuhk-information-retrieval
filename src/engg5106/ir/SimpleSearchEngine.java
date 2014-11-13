@@ -11,7 +11,7 @@ import engg5106.ir.indexer.SimpleIndexer;
 
 /**
  * @author NTF
- *
+ * @deprecated
  */
 public class SimpleSearchEngine {
 

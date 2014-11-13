@@ -29,21 +29,37 @@ public class Index implements Serializable {
 	public String test;
 	protected transient Analyzer analyzer;
 
-	protected int HashMapCount = 0;
 	protected int documentCount = 0;
 
+	/**
+	 * Fast document key to Document storage Map <document-key , Document object
+	 * >
+	 */
 	protected BTreeMap<String, Document> documents;
+	/**
+	 * Map< document-key , document-id >
+	 */
 	protected transient HTreeMap<String, Integer> documentDictionary;
+
+	/**
+	 * ReverseMapping < document-id , document-key>
+	 */
 	protected transient NavigableSet<Fun.Tuple2<Integer, String>> documentDictionaryInverse;
 
 	protected int termCount = 0;
 
+	/**
+	 * Map < Term (string) , termId >
+	 */
 	protected transient HTreeMap<String, Integer> termDictionary;
+	/**
+	 * ReverseMapping < termId , Term (string)
+	 */
 	protected transient NavigableSet<Fun.Tuple2<Integer, String>> termDictionaryInverse;
 
 	/**
-	 * fieldName , TermId , DocId, TermDocumentFrequency size of ArrayList =
-	 * DocumentFrequency
+	 * HashMap< fieldName , MapDB< TermId , HashMap< DocId, DocumentFrequency>
+	 * >>
 	 */
 	protected HashMap<String, HTreeMap<Integer, HashMap<Integer, Integer>>> index;
 
@@ -59,27 +75,34 @@ public class Index implements Serializable {
 	public void initialize() {
 		analyzer = new StandardAnalyzer();
 
-		this.documents = this.db.getTreeMap("documents");
-		this.termDictionary = this.db.getHashMap("termDictionary");
+		this.documents = this.db.createTreeMap("documents").counterEnable()
+				.makeOrGet();
+
+		this.termDictionary = this.db.createHashMap("termDictionary")
+				.counterEnable().makeOrGet();
 		// inverse mapping for primary map
 		termDictionaryInverse = new TreeSet<Fun.Tuple2<Integer, String>>();
 		// bind inverse mapping to primary map, so it is auto-updated
 		Bind.mapInverse(this.termDictionary, termDictionaryInverse);
 
-		this.documentDictionary = this.db.getHashMap("documentDictionary");
+		this.documentDictionary = this.db.createHashMap("documentDictionary")
+				.counterEnable().makeOrGet();
 		documentDictionaryInverse = new TreeSet<Fun.Tuple2<Integer, String>>();
 		Bind.mapInverse(this.documentDictionary, documentDictionaryInverse);
 
 		this.index = new HashMap<String, HTreeMap<Integer, HashMap<Integer, Integer>>>();
+
 		for (IndexOptions option : this.options) {
 			HTreeMap<Integer, HashMap<Integer, Integer>> tierIndex;
 			if (!index.containsKey(option.getField())) {
-				tierIndex = this.db.getHashMap("index-" + option.getField());
+				tierIndex = this.db.createHashMap("index-" + option.getField())
+						.counterEnable().makeOrGet();
 				index.put(option.getField(), tierIndex);
 			} else {
 				tierIndex = index.get(option.getField());
 			}
 		}
+
 		this.documentCount = this.documents.size();
 		this.termCount = this.termDictionary.size();
 	}
@@ -92,6 +115,11 @@ public class Index implements Serializable {
 		this.options = options;
 	}
 
+	/**
+	 * add document to the index
+	 * 
+	 * @param doc
+	 */
 	public void add(Document doc) {
 		String key = doc.key();
 
@@ -111,7 +139,8 @@ public class Index implements Serializable {
 		for (IndexOptions option : this.options) {
 			HTreeMap<Integer, HashMap<Integer, Integer>> tierIndex;
 			if (!index.containsKey(option.getField())) {
-				tierIndex = this.db.getHashMap("index-" + option.getField());
+				tierIndex = this.db.createHashMap("index-" + option.getField())
+						.counterEnable().makeOrGet();
 				index.put(option.getField(), tierIndex);
 			} else {
 				tierIndex = index.get(option.getField());
@@ -154,19 +183,23 @@ public class Index implements Serializable {
 		if (!tierIndex.containsKey(termId)) {
 			termIndex = new HashMap<Integer, Integer>();
 			tierIndex.put(termId, termIndex);
-			HashMapCount++;
 		} else {
 			termIndex = tierIndex.get(termId);
 		}
 
 		if (!termIndex.containsKey(docId)) {
 			termIndex.put(docId, 1);
-			HashMapCount++;
 		} else {
 			termIndex.put(docId, (termIndex.get(docId) + 1));
 		}
 	}
 
+	/**
+	 * get document by document-key
+	 * 
+	 * @param key
+	 * @return
+	 */
 	public Document get(String key) {
 		if (this.documents.containsKey(key)) {
 			return this.documents.get(key);
@@ -175,6 +208,12 @@ public class Index implements Serializable {
 		}
 	}
 
+	/**
+	 * get document by document-id
+	 * 
+	 * @param docId
+	 * @return
+	 */
 	public Document getDocument(int docId) {
 		for (String key : Fun.filter(this.documentDictionaryInverse, docId)) {
 			Document doc = this.get(key);
@@ -184,6 +223,12 @@ public class Index implements Serializable {
 		return null;
 	}
 
+	/**
+	 * get document-id by document
+	 * 
+	 * @param doc
+	 * @return
+	 */
 	public int getDocumentId(Document doc) {
 		String key = doc.key();
 		if (this.documents.containsKey(key)) {
@@ -193,6 +238,12 @@ public class Index implements Serializable {
 		return -1;
 	}
 
+	/**
+	 * get termId by term
+	 * 
+	 * @param term
+	 * @return
+	 */
 	public int getTermId(String term) {
 		if (this.termDictionary.containsKey(term)) {
 			return this.termDictionary.get(term);
@@ -201,6 +252,14 @@ public class Index implements Serializable {
 		return -1;
 	}
 
+	/**
+	 * get term frequency by field (index-name) , termId , docId
+	 * 
+	 * @param field
+	 * @param termId
+	 * @param docId
+	 * @return
+	 */
 	public int getTermFrequency(String field, int termId, int docId) {
 		if (this.index.containsKey(field)) {
 			HTreeMap<Integer, HashMap<Integer, Integer>> a = this.index
@@ -215,6 +274,13 @@ public class Index implements Serializable {
 		return 0;
 	}
 
+	/**
+	 * get document frequency by field (index-name) , termId
+	 * 
+	 * @param field
+	 * @param termId
+	 * @return
+	 */
 	public int getDocumentFrequency(String field, int termId) {
 		if (this.index.containsKey(field)) {
 			HTreeMap<Integer, HashMap<Integer, Integer>> a = this.index
@@ -228,6 +294,9 @@ public class Index implements Serializable {
 		return 0;
 	}
 
+	/**
+	 * list documents debug use
+	 */
 	public void listDocuments() {
 		for (Entry<String, Document> entry : this.documents.entrySet()) {
 			System.out.println("Key = " + entry.getKey() + ", Value = "
@@ -251,6 +320,13 @@ public class Index implements Serializable {
 		this.termDictionary = d;
 	}
 
+	/**
+	 * tokenizer
+	 * 
+	 * @param analyzer
+	 * @param string
+	 * @return
+	 */
 	public static List<String> tokenize(Analyzer analyzer, String string) {
 		List<String> result = new ArrayList<String>();
 		try {

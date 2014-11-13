@@ -15,7 +15,7 @@ import engg5106.ir.smoothing.JelinekMercerSmoothing;
 
 /**
  * @author NTF
- *
+ * @deprecated
  */
 public class SimilarDocuments extends SimpleSearchEngine {
 

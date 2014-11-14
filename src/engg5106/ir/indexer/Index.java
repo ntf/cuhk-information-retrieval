@@ -66,6 +66,8 @@ public class Index implements Serializable {
 	private transient IndexOptions[] options;
 
 	public transient DB db;
+	
+	protected double lave;
 
 	public Index() {
 		test = "test1";
@@ -105,6 +107,7 @@ public class Index implements Serializable {
 
 		this.documentCount = this.documents.size();
 		this.termCount = this.termDictionary.size();
+		this.lave=0.0;
 	}
 
 	public void setDB(DB db) {
@@ -145,6 +148,10 @@ public class Index implements Serializable {
 			} else {
 				tierIndex = index.get(option.getField());
 			}
+			
+			int doc_length = Integer.parseInt(doc.getField("title_length"));
+			this.lave =this.lave*(documentCount-1);
+			this.lave = (this.lave+doc_length) / documentCount;
 
 			String value = doc.getField(option.getField());
 			if (value != null) {
@@ -274,6 +281,11 @@ public class Index implements Serializable {
 		return 0;
 	}
 
+
+	public double getAvgDocLength() {
+			return this.lave;
+	}
+	
 	/**
 	 * get document frequency by field (index-name) , termId
 	 * 

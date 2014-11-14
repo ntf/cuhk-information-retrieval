@@ -77,7 +77,9 @@ public class Indexer {
 					doc.addField("permalink", record.get("permalink"));
 					doc.addField("domain", record.get("domain"));
 					doc.addField("url", record.get("url"));
-
+					
+					doc.addField("title_length", String.valueOf(record.get("title").length()));
+					doc.addField("content_length", String.valueOf(record.get("selftext").length()));
 					// add to index
 					indexer.getIndex().add(doc);
 				}

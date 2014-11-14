@@ -92,3 +92,5 @@ $RECYCLE.BIN/
 *.lnk
 
 /ui_with_angular/nbproject/private/
+/index/
+/sample/

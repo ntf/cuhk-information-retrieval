@@ -2,62 +2,65 @@ package engg5106.ir.bm25;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import engg5106.ir.matrix.TfIdfWeightedDocumentTermMatrix;
-
+import engg5106.ir.Document;
+import engg5106.ir.indexer.Index;
 
 public class bm25 {
 	private HashMap<Integer, Integer> map;
+	private HashMap<Integer, Integer> qmap; //Query Map
 
-	private int termCount;
+	
 
 	public bm25(int terms, int docID) {
-		this.termCount = 0;
 		this.map = new HashMap<Integer, Integer>();
 	}
 
-	public void add(int term, int count) {
-		if (!this.map.containsKey(term)) {
-			this.map.put(term, 0);
-		}
-
-		this.map.put(term, this.map.get(term) + count);
-		this.termCount += count;
-	}
 
 
-	public double rsv(TfIdfWeightedDocumentTermMatrix tfidf,String query, int doc) {
+	public double rsv(Index ind,String query, int docid) {
 		double def_rsv = 0.0;
 		double k1=1.5;
 		double k3=1.5;
 		double b =0.75;
-		int n =tfidf.sizeOfDocument();
-		int ld = tfidf.getDocLenght(doc); // Length of the current doc
-		double lave =  tfidf.getAvgDocLenght() ; // Length of the average doc
+		String field = "title";
+		Document doc;
+		int ld;
+		double lave;
+		
+		int n;
+		int dft;
+		int tftd;
+		int tftq;
 		
         StringTokenizer tokens = new StringTokenizer(query);
-      /*  while(tokens.hasMoreTokens()) {
+        qmap.clear();
+        while(tokens.hasMoreTokens()) {
+        	int q_termid;
+        	q_termid = ind.getTermId(tokens.nextToken()); // Take back the term id of query
+        	if (!this.qmap.containsKey(q_termid)) 
+        	{
+        		this.qmap.put(q_termid, 0);
+        	}
+    		this.qmap.put(q_termid, this.qmap.get(q_termid) + 1);		
+        }
+        doc = ind.getDocument(docid);
+        n = ind.getDocumentCount();
+        ld= Integer.parseInt(doc.getField("title_length"));
+        lave = ind.getAvgDocLength();
+        
+        for (int queryTerm : qmap.keySet()) {
+        	dft = ind.getDocumentFrequency(field,queryTerm);
+        	tftd = ind.getTermFrequency(field,queryTerm, docid);
+        	tftq = qmap.get(queryTerm);
+			def_rsv += Math.log10(n/dft) * (((k1+1)*tftd) / (k1*((1-b)+b*(ld/lave)+tftd)))* (((k3+1)*tftq) / (k3 + tftq));
+        }
+		/*
 
-        	tokens.nextToken()    // Take back the term id
-
-			int df = tfidf.getDocFrequencies(term);
-			def_rsv += Math.log10(n/df) * (((k1+1)*tfidf.getFrequencies(term, doc)) / (k1*((1-b)+b(ld/lave)+tfidf.getFrequencies(term, doc))))* (((k3+1)*tfq) / (k3 + tfq));
 	
 		
 		}*/
 		return def_rsv;
 	}
 	
-	public double P(HashMap<Integer, Integer> query) {
-		double result = 1.0;
-		for (int term : query.keySet()) {
-			// 0.25 * 0.25 = 0.25^2
-			//result *= Math.pow(this.P(term), (double) query.get(term));
-		}
-		return result;
-	}
 
-
-	public int getTermCount() {
-		return this.termCount;
-	}
 }

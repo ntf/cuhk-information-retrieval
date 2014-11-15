@@ -67,7 +67,7 @@ public class Index implements Serializable {
 
 	public transient DB db;
 	
-	protected double lave;
+
 
 	public Index() {
 		test = "test1";
@@ -107,7 +107,6 @@ public class Index implements Serializable {
 
 		this.documentCount = this.documents.size();
 		this.termCount = this.termDictionary.size();
-		this.lave=0.0;
 	}
 
 	public void setDB(DB db) {
@@ -149,10 +148,32 @@ public class Index implements Serializable {
 				tierIndex = index.get(option.getField());
 			}
 			
-			int doc_length = Integer.parseInt(doc.getField("title_length"));
-			this.lave =this.lave*(documentCount-1);
-			this.lave = (this.lave+doc_length) / documentCount;
-
+			//int doc_length = Integer.parseInt(doc.getField("title_length"));
+			//HashMap<Integer, Integer> lavg;
+			/*
+			if (!tierIndex.containsKey(99999999)){   // Use Term id 99999999, docid 0 's frequency used to store the total doc length
+				lavg = new HashMap<Integer, Integer>();
+			 	tierIndex.put(99999999, lavg);
+			}
+			else
+				lavg = tierIndex.get(99999999);
+			
+			if (!lavg.containsKey(0)) 
+				lavg.put(0,doc_length);
+			else
+			{
+				lavg.put(0,doc_length + lavg.get(0));
+				System.out.println("Size" + " : " + lavg.size());
+			}
+			*/
+			/**
+			 * Working
+			 */
+			
+			int docid =5 ;
+			int tid = 1000000;
+			this.addDocumentToTerm(tierIndex, docid, tid);
+			
 			String value = doc.getField(option.getField());
 			if (value != null) {
 				if (option.getType() == IndexOptions.Type.Tokenize) {
@@ -281,11 +302,27 @@ public class Index implements Serializable {
 		return 0;
 	}
 
-
-	public double getAvgDocLength() {
-			return this.lave;
+/*
+	public int getAvgDocLength(String field) {
+		int tid = 99999999;
+		int did = 2;
+		if (this.index.containsKey(field)) {
+			HTreeMap<Integer, HashMap<Integer, Integer>> a = this.index
+					.get(field);
+			if (a.containsKey(tid)) {
+				System.out.println("OK");
+				HashMap<Integer, Integer> b = a.get(tid);
+				System.out.println("Size" + " : " + a.size());
+		        System.out.println("Size" + " : " + b.size());
+		        
+				if (b.containsKey(did)) {
+					return b.get(did);
+				}
+			}
+		}
+		return 0;
 	}
-	
+*/
 	/**
 	 * get document frequency by field (index-name) , termId
 	 * 

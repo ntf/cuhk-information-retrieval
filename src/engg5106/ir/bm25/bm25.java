@@ -9,12 +9,10 @@ public class bm25 {
 	private HashMap<Integer, Integer> map;
 	private HashMap<Integer, Integer> qmap; //Query Map
 
-	
-
-	public bm25(int terms, int docID) {
+	public bm25() {
 		this.map = new HashMap<Integer, Integer>();
+		this.qmap = new HashMap<Integer, Integer>();
 	}
-
 
 
 	public double rsv(Index ind,String query, int docid) {
@@ -37,6 +35,7 @@ public class bm25 {
         while(tokens.hasMoreTokens()) {
         	int q_termid;
         	q_termid = ind.getTermId(tokens.nextToken()); // Take back the term id of query
+        	//System.out.println(q_termid);
         	if (!this.qmap.containsKey(q_termid)) 
         	{
         		this.qmap.put(q_termid, 0);
@@ -46,19 +45,25 @@ public class bm25 {
         doc = ind.getDocument(docid);
         n = ind.getDocumentCount();
         ld= Integer.parseInt(doc.getField("title_length"));
-        lave = ind.getAvgDocLength();
-        
+        lave =  0.0;//ind.getAvgDocLength("title") / n;
+        System.out.println(ld);
+        //System.out.println(ind.getAvgDocLength("title"));
+		int docida =5 ;
+		int tid = 1000000;
+        System.out.println(ind.getTermFrequency(field,tid,docida));
+
         for (int queryTerm : qmap.keySet()) {
         	dft = ind.getDocumentFrequency(field,queryTerm);
+        	
         	tftd = ind.getTermFrequency(field,queryTerm, docid);
         	tftq = qmap.get(queryTerm);
-			def_rsv += Math.log10(n/dft) * (((k1+1)*tftd) / (k1*((1-b)+b*(ld/lave)+tftd)))* (((k3+1)*tftq) / (k3 + tftq));
+        	
+        	if(dft != 0)
+        		def_rsv += Math.log10(n/dft) * (((k1+1)*(double)tftd) / (k1*((1-b)+b*(ld/lave))+tftd))* (((k3+1)*tftq) / (k3 + tftq));
+        	else
+        		def_rsv += 0;
         }
-		/*
 
-	
-		
-		}*/
 		return def_rsv;
 	}
 	

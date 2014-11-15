@@ -17,6 +17,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
+import engg5106.ir.bm25.bm25;
 import engg5106.ir.indexer.Index;
 import engg5106.ir.indexer.IndexOptions;
 
@@ -31,6 +32,7 @@ public class Searcher {
 	public static void main(String[] args) throws ClassNotFoundException {
 		System.out.println("Searcher");
 		Indexer indexer = new Indexer(new File("index/index400"));
+		bm25 scorer = new bm25();
 
 		// Index configuration , multiple tiers
 		indexer.setOptions(new IndexOptions[] {
@@ -42,7 +44,12 @@ public class Searcher {
 		indexer.ready();
 		indexer.getIndex().debug();
 		// indexer.save();
-
+		for (int i=0;i<5;i++)
+		{
+		double rsvmark;
+		rsvmark = scorer.rsv(indexer.getIndex(), "posted", i);
+		System.out.println("Marks of "+i +" :"+ rsvmark);
+		}
 		System.out.println("--DONE--");
 	}
 

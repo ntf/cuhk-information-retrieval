@@ -81,6 +81,7 @@ public class Indexer {
 					doc.addField("title_length", String.valueOf(record.get("title").length()));
 					doc.addField("content_length", String.valueOf(record.get("selftext").length()));
 					// add to index
+					//System.out.println("title :" +record.get("title"));
 					indexer.getIndex().add(doc);
 				}
 				parser.close();

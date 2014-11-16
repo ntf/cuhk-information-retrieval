@@ -6,11 +6,9 @@ import engg5106.ir.Document;
 import engg5106.ir.indexer.Index;
 
 public class bm25 {
-	private HashMap<Integer, Integer> map;
 	private HashMap<Integer, Integer> qmap; //Query Map
 
 	public bm25() {
-		this.map = new HashMap<Integer, Integer>();
 		this.qmap = new HashMap<Integer, Integer>();
 	}
 
@@ -35,7 +33,7 @@ public class bm25 {
         while(tokens.hasMoreTokens()) {
         	int q_termid;
         	q_termid = ind.getTermId(tokens.nextToken()); // Take back the term id of query
-        	//System.out.println(q_termid);
+        	
         	if (!this.qmap.containsKey(q_termid)) 
         	{
         		this.qmap.put(q_termid, 0);
@@ -44,14 +42,10 @@ public class bm25 {
         }
         doc = ind.getDocument(docid);
         n = ind.getDocumentCount();
-        ld= Integer.parseInt(doc.getField("title_length"));
-        lave =  0.0;//ind.getAvgDocLength("title") / n;
+        ld= ind.getTermFrequency(field,99999998,docid);
         System.out.println(ld);
-        //System.out.println(ind.getAvgDocLength("title"));
-		int docida =5 ;
-		int tid = 1000000;
-        System.out.println(ind.getTermFrequency(field,tid,docida));
-
+        lave =  ind.getTermFrequency(field,99999999,0);
+        lave = lave /n;
         for (int queryTerm : qmap.keySet()) {
         	dft = ind.getDocumentFrequency(field,queryTerm);
         	

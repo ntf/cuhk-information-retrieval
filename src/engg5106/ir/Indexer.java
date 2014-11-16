@@ -78,10 +78,10 @@ public class Indexer {
 					doc.addField("domain", record.get("domain"));
 					doc.addField("url", record.get("url"));
 					
-					doc.addField("title_length", String.valueOf(record.get("title").length()));
-					doc.addField("content_length", String.valueOf(record.get("selftext").length()));
+					//doc.addField("title_length", String.valueOf(record.get("title").length()));
+					//doc.addField("content_length", String.valueOf(record.get("selftext").length()));
 					// add to index
-					//System.out.println("title :" +record.get("title"));
+
 					indexer.getIndex().add(doc);
 				}
 				parser.close();

@@ -44,7 +44,7 @@ public class Searcher {
 		indexer.ready();
 		indexer.getIndex().debug();
 		// indexer.save();
-		for (int i=0;i<5;i++)
+		for (int i=0;i<200;i++)
 		{
 		double rsvmark;
 		rsvmark = scorer.rsv(indexer.getIndex(), "posted", i);

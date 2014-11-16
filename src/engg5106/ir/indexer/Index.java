@@ -148,36 +148,14 @@ public class Index implements Serializable {
 				tierIndex = index.get(option.getField());
 			}
 			
-			//int doc_length = Integer.parseInt(doc.getField("title_length"));
-			//HashMap<Integer, Integer> lavg;
-			/*
-			if (!tierIndex.containsKey(99999999)){   // Use Term id 99999999, docid 0 's frequency used to store the total doc length
-				lavg = new HashMap<Integer, Integer>();
-			 	tierIndex.put(99999999, lavg);
-			}
-			else
-				lavg = tierIndex.get(99999999);
-			
-			if (!lavg.containsKey(0)) 
-				lavg.put(0,doc_length);
-			else
-			{
-				lavg.put(0,doc_length + lavg.get(0));
-				System.out.println("Size" + " : " + lavg.size());
-			}
-			*/
-			/**
-			 * Working
-			 */
-			
-			int docid =5 ;
-			int tid = 1000000;
-			this.addDocumentToTerm(tierIndex, docid, tid);
-			
+			int doc_length = 0;
+			HashMap<Integer, Integer> lavg;
+
 			String value = doc.getField(option.getField());
 			if (value != null) {
 				if (option.getType() == IndexOptions.Type.Tokenize) {
 					List<String> tokens = Index.tokenize(analyzer, value);
+					doc_length = tokens.size();
 					for (String token : tokens) {
 						if (this.termDictionary.containsKey(token)) {
 							termId = this.termDictionary.get(token);
@@ -187,6 +165,7 @@ public class Index implements Serializable {
 							this.termCount++;
 						}
 						this.addDocumentToTerm(tierIndex, docId, termId);
+						this.addDocumentToTerm(tierIndex, docId, 99999998); // Stores doc length
 					}
 					tokens.clear();
 
@@ -201,6 +180,22 @@ public class Index implements Serializable {
 					this.addDocumentToTerm(tierIndex, docId, termId);
 				}
 			}
+			
+			if (!tierIndex.containsKey(99999999)){   // Use Term id 99999999, docid 0 's frequency used to store the total doc length
+				lavg = new HashMap<Integer, Integer>();
+			 	tierIndex.put(99999999, lavg);
+			}
+			else
+				lavg = tierIndex.get(99999999);
+			
+			if (!lavg.containsKey(0)) 
+				lavg.put(0,doc_length);
+			else
+			{
+				lavg.put(0,doc_length + lavg.get(0));
+			}
+			tierIndex.put(99999999, lavg);
+
 		}
 	}
 
@@ -220,6 +215,7 @@ public class Index implements Serializable {
 		} else {
 			termIndex.put(docId, (termIndex.get(docId) + 1));
 		}
+		
 	}
 
 	/**
@@ -302,7 +298,7 @@ public class Index implements Serializable {
 		return 0;
 	}
 
-/*
+
 	public int getAvgDocLength(String field) {
 		int tid = 99999999;
 		int did = 2;
@@ -322,7 +318,7 @@ public class Index implements Serializable {
 		}
 		return 0;
 	}
-*/
+
 	/**
 	 * get document frequency by field (index-name) , termId
 	 * 

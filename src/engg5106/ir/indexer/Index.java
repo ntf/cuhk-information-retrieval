@@ -11,6 +11,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.mapdb.Atomic.Var;
 import org.mapdb.BTreeMap;
 import org.mapdb.Bind;
 import org.mapdb.DB;
@@ -44,7 +45,7 @@ public class Index implements Serializable {
 	/**
 	 * ReverseMapping < document-id , document-key>
 	 */
-	protected transient NavigableSet<Fun.Tuple2<Integer, String>> documentDictionaryInverse;
+	protected transient HTreeMap<Integer, String> documentDictionaryInverse;
 
 	protected int termCount = 0;
 
@@ -55,7 +56,7 @@ public class Index implements Serializable {
 	/**
 	 * ReverseMapping < termId , Term (string)
 	 */
-	protected transient NavigableSet<Fun.Tuple2<Integer, String>> termDictionaryInverse;
+	protected transient HTreeMap<Integer, String> termDictionaryInverse;
 
 	/**
 	 * HashMap< fieldName , MapDB< TermId , HashMap< DocId, DocumentFrequency>
@@ -63,11 +64,10 @@ public class Index implements Serializable {
 	 */
 	protected HashMap<String, HTreeMap<Integer, HashMap<Integer, Integer>>> index;
 
+	HTreeMap<String, Double> docLengthLogAverage;
 	private transient IndexOptions[] options;
 
 	public transient DB db;
-	
-
 
 	public Index() {
 		test = "test1";
@@ -82,15 +82,16 @@ public class Index implements Serializable {
 
 		this.termDictionary = this.db.createHashMap("termDictionary")
 				.counterEnable().makeOrGet();
+
 		// inverse mapping for primary map
-		termDictionaryInverse = new TreeSet<Fun.Tuple2<Integer, String>>();
-		// bind inverse mapping to primary map, so it is auto-updated
-		Bind.mapInverse(this.termDictionary, termDictionaryInverse);
+		termDictionaryInverse = this.db.createHashMap("termDictionary-reverse")
+				.counterEnable().makeOrGet();
 
 		this.documentDictionary = this.db.createHashMap("documentDictionary")
 				.counterEnable().makeOrGet();
-		documentDictionaryInverse = new TreeSet<Fun.Tuple2<Integer, String>>();
-		Bind.mapInverse(this.documentDictionary, documentDictionaryInverse);
+		documentDictionaryInverse = this.db
+				.createHashMap("documentDictionary-reverse").counterEnable()
+				.makeOrGet();
 
 		this.index = new HashMap<String, HTreeMap<Integer, HashMap<Integer, Integer>>>();
 
@@ -105,8 +106,44 @@ public class Index implements Serializable {
 			}
 		}
 
+		docLengthLogAverage = this.db.createHashMap(
+				"average-document-length-by-fields").makeOrGet();
 		this.documentCount = this.documents.size();
 		this.termCount = this.termDictionary.size();
+	}
+
+	/**
+	 * Geometric mean we store the sum of the log value of document length
+	 * 
+	 * @param length
+	 */
+	protected void addDocumentLength(String field, int length) {
+		double d = 0.0;
+		if (length > 0) {
+			if (this.docLengthLogAverage.containsKey(field)) {
+				d = docLengthLogAverage.get(field);
+			}
+			if (d + Math.log10(length) == Double.NEGATIVE_INFINITY) {
+				System.out.println("debug");
+			}
+			docLengthLogAverage.put(field, d + Math.log10(length));
+		}
+	}
+
+	/**
+	 * Geometric mean via log-average
+	 * 
+	 * This is sometimes called the log-average (not to be confused with the
+	 * logarithmic average). It is simply computing the arithmetic mean of the
+	 * logarithm-transformed values of a_i (i.e., the arithmetic mean on the log
+	 * scale) and then using the exponentiation to return the computation to the
+	 * original scale
+	 * 
+	 * @return
+	 */
+	protected double getAverageDocumentLength(String field) {
+		double d = docLengthLogAverage.get(field);
+		return Math.exp(d / (double) this.documents.size());
 	}
 
 	public void setDB(DB db) {
@@ -115,6 +152,10 @@ public class Index implements Serializable {
 
 	public void setOptions(IndexOptions[] options) {
 		this.options = options;
+	}
+
+	public Analyzer getAnalyzer() {
+		return this.analyzer;
 	}
 
 	/**
@@ -129,8 +170,10 @@ public class Index implements Serializable {
 
 		if (this.documents.containsKey(key)) {
 			docId = this.documentDictionary.get(key);
+			return;
 		} else {
 			this.documentDictionary.put(key, this.documentCount);
+			this.documentDictionaryInverse.put(this.documentCount, key);
 			docId = this.documentCount;
 			this.documentCount++;
 		}
@@ -147,25 +190,25 @@ public class Index implements Serializable {
 			} else {
 				tierIndex = index.get(option.getField());
 			}
-			
-			int doc_length = 0;
-			HashMap<Integer, Integer> lavg;
 
 			String value = doc.getField(option.getField());
 			if (value != null) {
+
+				List<String> tokens = Index.tokenize(analyzer, value);
+				this.addDocumentLength(option.getField(), tokens.size());
+
 				if (option.getType() == IndexOptions.Type.Tokenize) {
-					List<String> tokens = Index.tokenize(analyzer, value);
-					doc_length = tokens.size();
 					for (String token : tokens) {
 						if (this.termDictionary.containsKey(token)) {
 							termId = this.termDictionary.get(token);
 						} else {
 							this.termDictionary.put(token, this.termCount);
+							this.termDictionaryInverse.put(this.termCount,
+									token);
 							termId = this.termCount;
 							this.termCount++;
 						}
 						this.addDocumentToTerm(tierIndex, docId, termId);
-						this.addDocumentToTerm(tierIndex, docId, 99999998); // Stores doc length
 					}
 					tokens.clear();
 
@@ -174,29 +217,16 @@ public class Index implements Serializable {
 						termId = this.termDictionary.get(value);
 					} else {
 						this.termDictionary.put(value, this.termCount);
+						this.termDictionaryInverse.put(this.termCount, value);
 						termId = this.termCount;
 						this.termCount++;
 					}
 					this.addDocumentToTerm(tierIndex, docId, termId);
 				}
 			}
-			
-			if (!tierIndex.containsKey(99999999)){   // Use Term id 99999999, docid 0 's frequency used to store the total doc length
-				lavg = new HashMap<Integer, Integer>();
-			 	tierIndex.put(99999999, lavg);
-			}
-			else
-				lavg = tierIndex.get(99999999);
-			
-			if (!lavg.containsKey(0)) 
-				lavg.put(0,doc_length);
-			else
-			{
-				lavg.put(0,doc_length + lavg.get(0));
-			}
-			tierIndex.put(99999999, lavg);
 
 		}
+		System.out.println("added " + doc.getField("permalink"));
 	}
 
 	public void addDocumentToTerm(
@@ -215,7 +245,9 @@ public class Index implements Serializable {
 		} else {
 			termIndex.put(docId, (termIndex.get(docId) + 1));
 		}
-		
+
+		// don't forget to save the term index
+		tierIndex.put(termId, termIndex);
 	}
 
 	/**
@@ -239,12 +271,12 @@ public class Index implements Serializable {
 	 * @return
 	 */
 	public Document getDocument(int docId) {
-		for (String key : Fun.filter(this.documentDictionaryInverse, docId)) {
-			Document doc = this.get(key);
-			return doc;
+		if (this.documentDictionaryInverse.containsKey(docId)) {
+			return this.documents
+					.get(this.documentDictionaryInverse.get(docId));
+		} else {
+			return null;
 		}
-
-		return null;
 	}
 
 	/**
@@ -298,27 +330,6 @@ public class Index implements Serializable {
 		return 0;
 	}
 
-
-	public int getAvgDocLength(String field) {
-		int tid = 99999999;
-		int did = 2;
-		if (this.index.containsKey(field)) {
-			HTreeMap<Integer, HashMap<Integer, Integer>> a = this.index
-					.get(field);
-			if (a.containsKey(tid)) {
-				System.out.println("OK");
-				HashMap<Integer, Integer> b = a.get(tid);
-				System.out.println("Size" + " : " + a.size());
-		        System.out.println("Size" + " : " + b.size());
-		        
-				if (b.containsKey(did)) {
-					return b.get(did);
-				}
-			}
-		}
-		return 0;
-	}
-
 	/**
 	 * get document frequency by field (index-name) , termId
 	 * 
@@ -337,6 +348,18 @@ public class Index implements Serializable {
 			}
 		}
 		return 0;
+	}
+
+	public HashMap<Integer, Integer> getPositingList(String field, int termId) {
+		if (this.index.containsKey(field)) {
+			HTreeMap<Integer, HashMap<Integer, Integer>> a = this.index
+					.get(field);
+			if (a.containsKey(termId)) {
+				HashMap<Integer, Integer> b = a.get(termId);
+				return b;
+			}
+		}
+		return null;
 	}
 
 	/**

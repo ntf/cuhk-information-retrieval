@@ -30,11 +30,12 @@ public class Indexer {
 	public static void main(String[] args) throws ClassNotFoundException {
 
 		System.out.println("Indexer");
+		Indexer indexer = new Indexer(new File("index/index100"));
 		try {
 			// setup the index location
 			// Indexer indexer = Indexer.open(new File("index/index1000"));
 
-			Indexer indexer = new Indexer(new File("index/index400"));
+			//indexer = new Indexer(new File("index/index100"));
 
 			// Index configuration , multiple tiers
 			indexer.setOptions(new IndexOptions[] {
@@ -46,7 +47,7 @@ public class Indexer {
 			indexer.ready();
 
 			// read file from a directory
-			File[] inputs = new File("sample/400/")
+			File[] inputs = new File("sample/100/")
 					.listFiles(new FilenameFilter() {
 						public boolean accept(File dir, String name) {
 							return name.toLowerCase().endsWith(".csv");
@@ -89,11 +90,19 @@ public class Indexer {
 			}
 
 			// indexer.getIndex().listDocuments();
-			indexer.getIndex().debug();
+		
 			indexer.save();
 
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			indexer.getIndex().debug();
+			try {
+				indexer.save();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		System.out.println("--DONE--");
@@ -113,7 +122,7 @@ public class Indexer {
 
 	public Index ready() {
 		DB db = DBMaker.newFileDB(new File(this.indexFile + "-db"))
-				.closeOnJvmShutdown().transactionDisable().make();
+				.closeOnJvmShutdown().transactionDisable().cacheSize(1000000).make();
 		index.setDB(db);
 
 		index.initialize();

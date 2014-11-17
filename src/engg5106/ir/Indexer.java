@@ -30,12 +30,12 @@ public class Indexer {
 	public static void main(String[] args) throws ClassNotFoundException {
 
 		System.out.println("Indexer");
-		Indexer indexer = new Indexer(new File("index/index100"));
+		Indexer indexer = new Indexer(new File("index/index100-20141117-1930"));
 		try {
 			// setup the index location
 			// Indexer indexer = Indexer.open(new File("index/index1000"));
 
-			//indexer = new Indexer(new File("index/index100"));
+			// indexer = new Indexer(new File("index/index100"));
 
 			// Index configuration , multiple tiers
 			indexer.setOptions(new IndexOptions[] {
@@ -78,19 +78,21 @@ public class Indexer {
 					doc.addField("permalink", record.get("permalink"));
 					doc.addField("domain", record.get("domain"));
 					doc.addField("url", record.get("url"));
-					
-					//doc.addField("title_length", String.valueOf(record.get("title").length()));
-					//doc.addField("content_length", String.valueOf(record.get("selftext").length()));
+
+					 doc.addField("title_length",String.valueOf(record.get("title").length()));
+					 doc.addField("content_length", String.valueOf(record.get("selftext").length()));
 					// add to index
 
 					indexer.getIndex().add(doc);
 				}
 				parser.close();
 				in.close();
+				indexer.getIndex().db.commit();
+				indexer.getIndex().db2.commit();
 			}
 
 			// indexer.getIndex().listDocuments();
-		
+			indexer.getIndex().debug();
 			indexer.save();
 
 		} catch (Exception e) {
@@ -122,8 +124,12 @@ public class Indexer {
 
 	public Index ready() {
 		DB db = DBMaker.newFileDB(new File(this.indexFile + "-db"))
-				.closeOnJvmShutdown().transactionDisable().cacheSize(1000000).make();
-		index.setDB(db);
+				.closeOnJvmShutdown().mmapFileEnableIfSupported()
+				.cacheSize(10000000).make();
+		DB db2 = DBMaker.newFileDB(new File(this.indexFile + "-db2"))
+				.closeOnJvmShutdown().cacheSize(100000)
+				.mmapFileEnableIfSupported().make();
+		index.setDB(db, db2);
 
 		index.initialize();
 		return this.index;

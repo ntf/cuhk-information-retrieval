@@ -237,7 +237,7 @@ public class Index implements Serializable {
 		}
 
 		this.documents.put(key, doc);
-		System.out.println("added " + doc.getField("permalink"));
+		//System.out.println("added " + doc.getField("permalink"));
 		if (this.documentCount % 50 == 0) {
 			this.db.commit();
 		}

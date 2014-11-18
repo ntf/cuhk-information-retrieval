@@ -133,7 +133,18 @@ public class Indexer {
 		index.initialize();
 		return this.index;
 	}
+	public Index searchReady() {
+		DB db = DBMaker.newFileDB(new File(this.indexFile + "-db"))
+				.closeOnJvmShutdown().mmapFileEnableIfSupported()
+				.cacheSize(10000000).readOnly().make();
+		DB db2 = DBMaker.newFileDB(new File(this.indexFile + "-db2"))
+				.closeOnJvmShutdown().cacheSize(100000)
+				.mmapFileEnableIfSupported().readOnly().make();
+		index.setDB(db, db2);
 
+		index.initialize();
+		return this.index;
+	}
 	public Index getIndex() {
 		return this.index;
 	}

@@ -29,8 +29,14 @@ public class bm25 {
 		int tftq;
 
 		query_map = qmap;
+		
 		n = ind.getDocumentCount();
-		ld = 1;
+		String sld = ind.getDocument(docid).getField(field +"_length");
+		if (sld != null)
+			ld = Integer.parseInt(sld);
+		else
+			ld = 0;
+		System.out.println(ld);
 		
 		lave = ind.getAverageDocumentLength("title");
 		lave = lave / n;

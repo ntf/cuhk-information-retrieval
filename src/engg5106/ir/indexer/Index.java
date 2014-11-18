@@ -68,6 +68,7 @@ public class Index implements Serializable {
 	private transient IndexOptions[] options;
 
 	public transient DB db;
+	public transient DB db2;
 
 	public Index() {
 		test = "test1";
@@ -77,19 +78,20 @@ public class Index implements Serializable {
 	public void initialize() {
 		analyzer = new StandardAnalyzer();
 
-		this.documents = this.db.createTreeMap("documents").counterEnable()
+		this.documents = this.db2.createTreeMap("documents").counterEnable()
 				.makeOrGet();
 
-		this.termDictionary = this.db.createHashMap("termDictionary")
+		this.termDictionary = this.db2.createHashMap("termDictionary")
 				.counterEnable().makeOrGet();
 
 		// inverse mapping for primary map
-		termDictionaryInverse = this.db.createHashMap("termDictionary-reverse")
-				.counterEnable().makeOrGet();
+		termDictionaryInverse = this.db2
+				.createHashMap("termDictionary-reverse").counterEnable()
+				.makeOrGet();
 
-		this.documentDictionary = this.db.createHashMap("documentDictionary")
+		this.documentDictionary = this.db2.createHashMap("documentDictionary")
 				.counterEnable().makeOrGet();
-		documentDictionaryInverse = this.db
+		documentDictionaryInverse = this.db2
 				.createHashMap("documentDictionary-reverse").counterEnable()
 				.makeOrGet();
 
@@ -143,11 +145,14 @@ public class Index implements Serializable {
 	 */
 	public double getAverageDocumentLength(String field) {
 		double d = docLengthLogAverage.get(field);
-		return Math.pow(10,d / (double) this.documents.size());
+
+		return Math.pow(10, d / (double) this.documents.size());
+
 	}
 
-	public void setDB(DB db) {
+	public void setDB(DB db, DB db2) {
 		this.db = db;
+		this.db2 = db2;
 	}
 
 	public void setOptions(IndexOptions[] options) {
@@ -169,7 +174,8 @@ public class Index implements Serializable {
 		int docId, termId;
 
 		if (this.documents.containsKey(key)) {
-			docId = this.documentDictionary.get(key);
+			// docId = this.documentDictionary.get(key);
+			// skip
 			return;
 		} else {
 			this.documentDictionary.put(key, this.documentCount);
@@ -177,8 +183,6 @@ public class Index implements Serializable {
 			docId = this.documentCount;
 			this.documentCount++;
 		}
-
-		this.documents.put(key, doc);
 
 		// Index implementation
 		for (IndexOptions option : this.options) {
@@ -196,6 +200,11 @@ public class Index implements Serializable {
 
 				List<String> tokens = Index.tokenize(analyzer, value);
 				this.addDocumentLength(option.getField(), tokens.size());
+
+				// tokenized input
+
+				doc.addField(option.getField() + "_length",
+						String.valueOf(tokens.size()));
 
 				if (option.getType() == IndexOptions.Type.Tokenize) {
 					for (String token : tokens) {
@@ -226,28 +235,39 @@ public class Index implements Serializable {
 			}
 
 		}
-		//System.out.println("added " + doc.getField("permalink"));
+
+		this.documents.put(key, doc);
+		System.out.println("added " + doc.getField("permalink"));
+		if (this.documentCount % 50 == 0) {
+			this.db.commit();
+		}
+
 	}
 
 	public void addDocumentToTerm(
 			HTreeMap<Integer, HashMap<Integer, Integer>> tierIndex, int docId,
 			int termId) {
-		HashMap<Integer, Integer> termIndex;
-		if (!tierIndex.containsKey(termId)) {
-			termIndex = new HashMap<Integer, Integer>();
-			tierIndex.put(termId, termIndex);
-		} else {
+		try {
+			HashMap<Integer, Integer> termIndex;
 			termIndex = tierIndex.get(termId);
-		}
+			if (termIndex == null) {
+				termIndex = new HashMap<Integer, Integer>();
+				tierIndex.put(termId, termIndex);
+			}/*
+			 * else { termIndex = tierIndex.get(termId); }
+			 */
 
-		if (!termIndex.containsKey(docId)) {
-			termIndex.put(docId, 1);
-		} else {
-			termIndex.put(docId, (termIndex.get(docId) + 1));
-		}
+			if (!termIndex.containsKey(docId)) {
+				termIndex.put(docId, 1);
+			} else {
+				termIndex.put(docId, (termIndex.get(docId) + 1));
+			}
 
-		// don't forget to save the term index
-		tierIndex.put(termId, termIndex);
+			// don't forget to save the term index
+			tierIndex.put(termId, termIndex);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -280,21 +300,17 @@ public class Index implements Serializable {
 	}
 
 	/**
-	 * get document  size
+	 * get document size
 	 * 
 	 * @param docId
 	 * @return
 	 */
 	/*
-	public Document getDocumentSize(int docId) {
-		if (this.documentDictionaryInverse.containsKey(docId)) {
-			return this.documents
-					.get(this.documentDictionaryInverse.get(docId).size());
-		} else {
-			return null;
-		}
-	}
-*/
+	 * public Document getDocumentSize(int docId) { if
+	 * (this.documentDictionaryInverse.containsKey(docId)) { return
+	 * this.documents .get(this.documentDictionaryInverse.get(docId).size()); }
+	 * else { return null; } }
+	 */
 	/**
 	 * get document-id by document
 	 * 

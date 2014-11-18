@@ -35,7 +35,7 @@ public class Searcher {
 
 	public static void main(String[] args) throws ClassNotFoundException {
 		System.out.println("Searcher");
-		Indexer indexer = new Indexer(new File("index/index100"));
+		Indexer indexer = new Indexer(new File("index/index100-20141118"));
 		bm25 scorer = new bm25();
 		IndexOptions[] options = new IndexOptions[] {
 				// new IndexOptions("subreddit", IndexOptions.Type.Keyword),
@@ -73,7 +73,7 @@ public class Searcher {
 				else
 					qmap.put(q_termid, qmap.get(q_termid) + 1);
 				
-				postingList = index.getPositingList("content", q_termid);
+				postingList = index.getPositingList(field, q_termid);
 				if ( postingList == null)
 					continue;									
 				System.out.println(querkToken + " term id is " + q_termid + ", posting list size = " + postingList.size());

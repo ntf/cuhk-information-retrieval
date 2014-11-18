@@ -30,7 +30,7 @@ public class Indexer {
 	public static void main(String[] args) throws ClassNotFoundException {
 
 		System.out.println("Indexer");
-		Indexer indexer = new Indexer(new File("index/index100-20141118"));
+		Indexer indexer = new Indexer(new File("index/index10"));
 		try {
 			// setup the index location
 			// Indexer indexer = Indexer.open(new File("index/index1000"));
@@ -47,12 +47,11 @@ public class Indexer {
 			indexer.ready();
 
 			// read file from a directory
-			File[] inputs = new File("sample/100/")
-					.listFiles(new FilenameFilter() {
-						public boolean accept(File dir, String name) {
-							return name.toLowerCase().endsWith(".csv");
-						}
-					});
+			File[] inputs = new File("sample3/").listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					return name.toLowerCase().endsWith(".csv");
+				}
+			});
 
 			// Read files
 			CSVFormat format = CSVFormat.RFC4180.withHeader();
@@ -64,21 +63,19 @@ public class Indexer {
 
 				String subreddit = file.getName().split("[.]", 2)[0];
 				for (CSVRecord record : parser) {
-
+					String content = record.get("selftext").length() > 0 ? record
+							.get("selftext") : null;
+					content += " " + record.get("top_20_comments");
 					// construct document
 					Document doc = new Document();
 					doc.addField("subreddit", subreddit);
 					doc.addField("title", record.get("title"));
-					doc.addField(
-							"content",
-							record.get("selftext").length() > 0 ? record
-									.get("selftext") : null);
+					doc.addField("content", content);
 					doc.addField("num_comments", record.get("num_comments"));
 					doc.addField("score", record.get("score"));
 					doc.addField("permalink", record.get("permalink"));
 					doc.addField("domain", record.get("domain"));
-					doc.addField("url", record.get("url"));
-
+					// doc.addField("url", record.get("url"));
 
 					// add to index
 

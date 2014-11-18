@@ -75,7 +75,8 @@ public class Indexer {
 					doc.addField("score", record.get("score"));
 					doc.addField("permalink", record.get("permalink"));
 					doc.addField("domain", record.get("domain"));
-					// doc.addField("url", record.get("url"));
+					doc.addField("created_utc", record.get("created_utc"));
+					// doc.addField("created_utc", record.get("created_utc"));
 
 					// add to index
 

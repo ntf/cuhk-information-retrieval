@@ -13,6 +13,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.csv.CSVFormat;
@@ -49,27 +51,54 @@ public class Searcher {
 		System.out.println("Ready");
 
 		Index index = indexer.getIndex();
-		String query = "Asura guardian";
-		List<String> tokens = index.tokenize(index.getAnalyzer(), query);
+		String query = "posted office";   // Query Entry
+		String field = "content";
+		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
 
-		int termId;
-		for (String token : tokens) {
-			termId = index.getTermId(token);
-			if (termId >= 0) {
-				HashMap<Integer, Integer> list = index.getPositingList(
-						"content", termId);
-				System.out.println(token + " term id is " + termId
-						+ ", posting list size = " + list.size());
-			} else {
-				System.out.println("unknown token: " + token);
+		int q_termid;
+		
+		Set<Integer> doc_to_score = new TreeSet<>();
+		HashMap<Integer, Integer> qmap = new HashMap<Integer, Integer>();
+		HashMap<Integer, Integer> postingList = new HashMap<Integer, Integer>();
+		
+		
+		
+		for (String querkToken : tokens) {
+			
+			q_termid = index.getTermId(querkToken);
+			if (q_termid >= 0) {
+				if (!qmap.containsKey(q_termid)) {
+					qmap.put(q_termid, 1);
+				}
+				else
+					qmap.put(q_termid, qmap.get(q_termid) + 1);
+				
+				postingList = index.getPositingList("content", q_termid);
+				if ( postingList == null)
+					continue;									
+				System.out.println(querkToken + " term id is " + q_termid + ", posting list size = " + postingList.size());
+				
+				for (Integer docID : postingList.keySet())
+				{
+					doc_to_score.add(docID);
+				}
+				
+			}
+			 else {
+				 System.out.println("Token no in indexer : " + querkToken);
+				 continue;
 			}
 		}
+		
+		
+		for (Integer docID : doc_to_score)
+		{
+			
+			double score =scorer.rsv(indexer.getIndex(), qmap, docID, field);
+			System.out.println("Doc: "+docID + " get " + score);
 
-		/*
-		 * // indexer.save(); for (int i=0;i<200;i++) { double rsvmark; rsvmark
-		 * = scorer.rsv(indexer.getIndex(), "posted", i);
-		 * System.out.println("Marks of "+i +" :"+ rsvmark); }
-		 */
+		}
+		
 		System.out.println("--DONE--");
 	}
 }

@@ -117,7 +117,7 @@ public class Index implements Serializable {
 	 * 
 	 * @param length
 	 */
-	protected void addDocumentLength(String field, int length) {
+	private void addDocumentLength(String field, int length) {
 		double d = 0.0;
 		if (length > 0) {
 			if (this.docLengthLogAverage.containsKey(field)) {
@@ -141,9 +141,9 @@ public class Index implements Serializable {
 	 * 
 	 * @return
 	 */
-	protected double getAverageDocumentLength(String field) {
+	public double getAverageDocumentLength(String field) {
 		double d = docLengthLogAverage.get(field);
-		return Math.exp(d / (double) this.documents.size());
+		return Math.pow(10,d / (double) this.documents.size());
 	}
 
 	public void setDB(DB db) {
@@ -226,7 +226,7 @@ public class Index implements Serializable {
 			}
 
 		}
-		System.out.println("added " + doc.getField("permalink"));
+		//System.out.println("added " + doc.getField("permalink"));
 	}
 
 	public void addDocumentToTerm(
@@ -279,6 +279,22 @@ public class Index implements Serializable {
 		}
 	}
 
+	/**
+	 * get document  size
+	 * 
+	 * @param docId
+	 * @return
+	 */
+	/*
+	public Document getDocumentSize(int docId) {
+		if (this.documentDictionaryInverse.containsKey(docId)) {
+			return this.documents
+					.get(this.documentDictionaryInverse.get(docId).size());
+		} else {
+			return null;
+		}
+	}
+*/
 	/**
 	 * get document-id by document
 	 * 

@@ -36,7 +36,7 @@ public class bm25 {
 			ld = Integer.parseInt(sld);
 		else
 			ld = 0;
-		System.out.println(ld);
+		//System.out.println(ld);
 		
 		lave = ind.getAverageDocumentLength("title");
 		lave = lave / n;

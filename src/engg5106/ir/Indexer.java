@@ -47,7 +47,7 @@ public class Indexer {
 			indexer.ready();
 
 			// read file from a directory
-			File[] inputs = new File("sample3/").listFiles(new FilenameFilter() {
+			File[] inputs = new File("sample/100/").listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
 					return name.toLowerCase().endsWith(".csv");
 				}
@@ -64,7 +64,7 @@ public class Indexer {
 				String subreddit = file.getName().split("[.]", 2)[0];
 				for (CSVRecord record : parser) {
 					String content = record.get("selftext").length() > 0 ? record
-							.get("selftext") : null;
+							.get("selftext") : "";
 					content += " " + record.get("top_20_comments");
 					// construct document
 					Document doc = new Document();

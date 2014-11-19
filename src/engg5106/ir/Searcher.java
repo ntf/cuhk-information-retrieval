@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -52,7 +53,7 @@ public class Searcher {
 	
 	public static void main(String[] args) throws ClassNotFoundException {
 		System.out.println("Searcher");
-		Indexer indexer = new Indexer(new File("index/index100-20141118"));
+		Indexer indexer = new Indexer(new File("index/index10"));
 		bm25 scorer = new bm25();
 		IndexOptions[] options = new IndexOptions[] {
 				// new IndexOptions("subreddit", IndexOptions.Type.Keyword),
@@ -68,9 +69,11 @@ public class Searcher {
 		System.out.println("Ready");
 
 		Index index = indexer.getIndex();
-		String query = "posted office boy mama";   // Query Entry
+		String query = "suck";   // Query Entry
 		String field = "title";
 		Boolean searchComment = true;
+		int scoreLimit = -99999;
+		int timeLimit = 604800;
 		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
 
 		int q_termid;
@@ -78,7 +81,8 @@ public class Searcher {
 		Set<Integer> doc_to_score = new TreeSet<>();
 		HashMap<Integer, Integer> qmap = new HashMap<Integer, Integer>();
 		HashMap<Integer, Integer> postingList = new HashMap<Integer, Integer>();
-		
+		long oldtime = 0;
+		oldtime = System.nanoTime();
 		
 		
 		for (String querkToken : tokens) {
@@ -143,18 +147,29 @@ public class Searcher {
 			}
 		});
 
-		StringBuffer sb = new StringBuffer("Query result:");
 		// TOP 10
-		for (int j = 0; j < 10; j++) {
-			if (j != 0) {
-				sb.append(",");
+		int i=0;
+		int j=0;
+		while (j<result.size() && j<10){
+			System.out.println("Doc ID " + result.get(i).docID1 + " Marks = "+ result.get(i).value );
+			Document doc;
+			doc = index.getDocument(result.get(i).docID1);
+			i++;
+			System.out.println( doc.getField("score"));
+			if (Integer.parseInt(doc.getField("score"))< scoreLimit)
+			{
+				continue;
 			}
-			sb.append(result.get(j).docID1);
+			System.out.println( doc.getField("title"));
+			System.out.println( doc.getField("created_utc"));
+			System.out.println( doc.getField("permalink"));
+			System.out.println(doc.getField("content").substring(0,100));
+			System.out.println("-----------------");
 
-			System.out.println(result.get(j).docID1 + " = "+ result.get(j).value);
-
+			j++;
+			
 		}
-		
+		System.out.println("Time use:"+ String.format("%.02f",(System.nanoTime() - oldtime)*Math.pow(10,-6)) + "ms");
 		System.out.println("--DONE--");
 	}
 	

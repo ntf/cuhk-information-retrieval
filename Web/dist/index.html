@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>English forum search engine</title>
+    <title>Reddit forum search engine</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -19,7 +19,7 @@
   <body>
     <div class="jumbotron">
       <div class="container">
-        <h1>English forum search engine</h1>
+        <h1>Reddit forum search engine</h1>
       </div>
     </div>
     <div class="container">
@@ -28,7 +28,30 @@
             <form role="form">
               <div class="input-group">
                 <input type="text" class="form-control" placeholder="Query">
+				Time range
+				<div class="col-xs-3">
+				<select class="form-control">
+				<option>Within 1 week</option>
+				  <option>Within 1 month</option>
+				  <option>Within 1 year</option>
+				  <option>ALL</option>
+				  
+				  </select>
+				  Score range
+				  <select class="form-control">
+				<option>Positive score</option>
+				  <option>above 50</option>
+				  <option>above 100</option>
+
+				  </select>
+				  <select class="form-control">
+				<option>title only</option>
+				  <option>Title and content</option>
+				  </select>
+				  </div>
                 <span class="input-group-btn">
+
+  
                   <button type="submit" class="btn btn-success">Go!</button>
                 </span>
               </div><!-- /input-group -->

@@ -69,7 +69,7 @@ public class Indexer {
 					// construct document
 					Document doc = new Document();
 					doc.addField("subreddit", subreddit);
-					doc.addField("title", record.get("title"));
+					doc.addField("title", "[" + subreddit +"] " + record.get("title"));
 					doc.addField("content", content);
 					doc.addField("num_comments", record.get("num_comments"));
 					doc.addField("score", record.get("score"));

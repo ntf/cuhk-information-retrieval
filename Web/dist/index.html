@@ -24,39 +24,58 @@
     </div>
     <div class="container">
         <div class="row">
-          <div class="col-lg-6">
-            <form role="form">
+          <form role="form" method="POST">
+            <div class="col-lg-4">
               <div class="input-group">
                 <input type="text" class="form-control" placeholder="Query">
-				Time range
-				<div class="col-xs-3">
-				<select class="form-control">
-				<option>Within 1 week</option>
-				  <option>Within 1 month</option>
-				  <option>Within 1 year</option>
-				  <option>ALL</option>
-				  
-				  </select>
-				  Score range
-				  <select class="form-control">
-				<option>Positive score</option>
-				  <option>above 50</option>
-				  <option>above 100</option>
-
-				  </select>
-				  <select class="form-control">
-				<option>title only</option>
-				  <option>Title and content</option>
-				  </select>
-				  </div>
                 <span class="input-group-btn">
-
-  
                   <button type="submit" class="btn btn-success">Go!</button>
                 </span>
               </div><!-- /input-group -->
-            </form>
-          </div><!-- /.col-lg-6 -->
+            </div><!-- /.col-lg-4 -->
+            <div class="col-lg-2">
+              <div class="input-group">
+                <label>Time range</label>
+                <select class="form-control">
+                  <option value="all">All</option>
+                  <option value="week">Within 1 week</option>
+                  <option value="month">Within 1 month</option>
+                  <option value="year">Within 1 year</option>
+                </select>
+              </div><!-- /input-group -->
+            </div><!-- /.col-lg-2 -->
+            <div class="col-lg-2">
+              <div class="input-group">
+                <label>Score range</label>
+                <select class="form-control">
+                  <option value="0">Positive score</option>
+                  <option value="50">Above 50</option>
+                  <option value="100">Above 100</option>
+                </select>
+              </div><!-- /input-group -->
+            </div><!-- /.col-lg-2 -->
+            <div class="col-lg-2">
+              <div class="input-group">
+                <label>Abstruct control</label>
+                <select class="form-control">
+                  <option value="title">Title only</option>
+                  <option value="title+content">Title and content</option>
+                </select>
+              </div><!-- /input-group -->
+            </div><!-- /.col-lg-2 -->
+            <div class="col-lg-2">
+              <div class="checkbox">
+                <label><input type="checkbox"> Query expansion</label>
+              </div>
+            </div><!-- /.col-lg-2 -->
+          </form>
+
+          <div class="container">
+
+            <!-- Please displace the search result here. (by Forte) -->
+
+          </div>
+
         </div>
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -65,3 +84,4 @@
     <script src="js/bootstrap.min.js"></script>
   </body>
 </html>
+

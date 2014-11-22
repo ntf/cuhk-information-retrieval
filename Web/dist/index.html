@@ -27,7 +27,7 @@
           <form role="form" method="POST">
             <div class="col-lg-4">
               <div class="input-group">
-                <input type="text" class="form-control" placeholder="Query">
+                <input type="text" class="form-control" placeholder="Query">  <!-- Pass to $query -->
                 <span class="input-group-btn">
                   <button type="submit" class="btn btn-success">Go!</button>
                 </span>
@@ -35,9 +35,9 @@
             </div><!-- /.col-lg-4 -->
             <div class="col-lg-2">
               <div class="input-group">
-                <label>Time range</label>
-                <select class="form-control">
-                  <option value="all">All</option>
+                <label>Time range</label>   <!-- Pass to $time -->
+                <select class="form-control">   
+                  <option value="999999999">All</option>
                   <option value="week">Within 1 week</option>
                   <option value="month">Within 1 month</option>
                   <option value="year">Within 1 year</option>
@@ -46,8 +46,9 @@
             </div><!-- /.col-lg-2 -->
             <div class="col-lg-2">
               <div class="input-group">
-                <label>Score range</label>
+                <label>Score range</label> <!-- Pass to $score -->
                 <select class="form-control">
+				  <option value="-999999">No limit</option>
                   <option value="0">Positive score</option>
                   <option value="50">Above 50</option>
                   <option value="100">Above 100</option>
@@ -55,11 +56,11 @@
               </div><!-- /input-group -->
             </div><!-- /.col-lg-2 -->
             <div class="col-lg-2">
-              <div class="input-group">
+              <div class="input-group"> <!-- Pass to $title -->
                 <label>Abstruct control</label>
                 <select class="form-control">
-                  <option value="title">Title only</option>
-                  <option value="title+content">Title and content</option>
+                  <option value="false">Title only</option>
+                  <option value="true">Title and content</option>
                 </select>
               </div><!-- /input-group -->
             </div><!-- /.col-lg-2 -->
@@ -73,7 +74,18 @@
           <div class="container">
 
             <!-- Please displace the search result here. (by Forte) -->
+			<!-- Please pass the form variable accordingly.  (Tom)  -->
+			<?php
 
+$query = "office";
+$title = "true";
+$score = "-999999";
+$time = "6084000" ;
+
+
+?>
+			
+			
           </div>
 
         </div>

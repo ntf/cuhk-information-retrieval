@@ -34,13 +34,7 @@ init("queryexpansion", "false");
     <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/freebase/suggest/4_2/suggest.min.css" />
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/freebase/suggest/4_2/suggest.min.js"></script>
-    <script type="text/javascript">
-    $(function() {
-      $("#myinput").suggest({
-       key: "AIzaSyBlD2AW28ZlT0FbVF7_N215J5tIau6RHn8"
-       });
-    });
-    </script>
+
   </head>
 
   <body>
@@ -119,9 +113,16 @@ init("queryexpansion", "false");
 
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+    $(function() {
+      $("#query").suggest({
+       key: "AIzaSyBlD2AW28ZlT0FbVF7_N215J5tIau6RHn8"
+       });
+    });
+    </script>
   </body>
 </html>
 

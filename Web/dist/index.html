@@ -1,21 +1,16 @@
 <?php
 
-if (!isset($query)) {
-  $query = "office";
+function init($var, $defaultVal){
+  if (!isset($_POST[$var])) {
+    $_POST[$var] = $defaultVal;
+  }
 }
 
-if (!isset($title)) {
-  $title = "true";
-}
-
-if (!isset($score)) {
-  $score = "100";
-}
-
-if (!isset($time)) {
-  $time = "6084000";
-}
-
+// Set default values
+init("time", "999999999");
+init("score", "-999999");
+init("title", "false");
+init("queryexpansion", "false");
 
 ?>
 

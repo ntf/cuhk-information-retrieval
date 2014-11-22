@@ -4,30 +4,18 @@ import org.mapdb.*;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
 import java.util.TreeSet;
 
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 
-import engg5106.ir.SimilarDocuments.Similarity;
 import engg5106.ir.bm25.bm25;
 import engg5106.ir.indexer.Index;
 import engg5106.ir.indexer.IndexOptions;
@@ -52,7 +40,7 @@ public class Searcher {
 	
 	
 	public static void main(String[] args) throws ClassNotFoundException {
-		System.out.println("Searcher");
+		//System.out.println("Searcher");
 		Indexer indexer = new Indexer(new File("index/index10"));
 		bm25 scorer = new bm25();
 		IndexOptions[] options = new IndexOptions[] {
@@ -65,15 +53,16 @@ public class Searcher {
 		indexer.setOptions(options);
 
 		indexer.searchReady();
-		indexer.getIndex().debug();
-		System.out.println("Ready");
+		//indexer.getIndex().debug();
+		//System.out.println("Ready");
 
 		Index index = indexer.getIndex();
-		String query = "suck";   // Query Entry
-		String field = "title";
-		Boolean searchComment = true;
-		int scoreLimit = -99999;
-		int timeLimit = 604800;
+		String query = args[0];   // Query Entry
+		String field = "title"; 
+		Boolean searchComment = Boolean.valueOf(args[1]);
+		int scoreLimit = Integer.parseInt(args[2]);
+		int timeLimit = Integer.parseInt(args[3]);
+		//August 15-20 of August 2013
 		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
 
 		int q_termid;
@@ -98,7 +87,7 @@ public class Searcher {
 				postingList = index.getPositingList(field, q_termid);
 				if ( postingList == null)
 					continue;									
-				System.out.println(querkToken + " term id is " + q_termid + ", posting list size = " + postingList.size());
+				//System.out.println(querkToken + " term id is " + q_termid + ", posting list size = " + postingList.size());
 				
 				for (Integer docID : postingList.keySet())
 				{
@@ -107,7 +96,7 @@ public class Searcher {
 				
 			}
 			 else {
-				 System.out.println("Token no in indexer : " + querkToken);
+				 //System.out.println("Token no in indexer : " + querkToken);
 				 continue;
 			}
 		}
@@ -120,7 +109,7 @@ public class Searcher {
 			double score =scorer.rsv(indexer.getIndex(), qmap, docID, field);
 				score_map.put(docID,score);
 		}
-		System.out.println("-----");
+		//System.out.println("-----");
 		if (searchComment){ // Need to search with comment
 		
 			field = "content";
@@ -148,24 +137,37 @@ public class Searcher {
 		});
 
 		// TOP 10
-		int i=0;
+
 		int j=0;
-		while (j<result.size() && j<10){
-			System.out.println("Doc ID " + result.get(i).docID1 + " Marks = "+ result.get(i).value );
+		int i=0;
+		while (i<result.size() && j<10){
 			Document doc;
-			doc = index.getDocument(result.get(i).docID1);
+			doc = index.getDocument(result.get(j).docID1);
 			i++;
-			System.out.println( doc.getField("score"));
+			//System.out.println( doc.getField("score"));
 			if (Integer.parseInt(doc.getField("score"))< scoreLimit)
 			{
 				continue;
 			}
-			System.out.println( doc.getField("title"));
-			System.out.println( doc.getField("created_utc"));
-			System.out.println( doc.getField("permalink"));
-			System.out.println(doc.getField("content").substring(0,100));
-			System.out.println("-----------------");
+			double doc_time = Double.parseDouble(doc.getField("created_utc"));
+			if (Math.abs(( doc_time- ( System.currentTimeMillis() / 1000l))) > timeLimit)
+			{
+				System.out.println("skip");
+				continue;
+			}
 
+			Date currentDate = new Date((long)doc_time*1000 - 28800000);
+			DateFormat df = new SimpleDateFormat("dd-MM-yyyy 'at' HH:mm:ss ");
+				
+			System.out.println(",");
+			System.out.println( doc.getField("title"));
+			System.out.println(",");
+			System.out.println(df.format(currentDate));
+			System.out.println(",");
+			System.out.println( doc.getField("permalink"));
+			System.out.println(",");
+			System.out.println(doc.getField("content").substring(0,100));
+			System.out.println(",");
 			j++;
 			
 		}

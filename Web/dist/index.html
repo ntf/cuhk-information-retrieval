@@ -12,17 +12,21 @@ init("time", "999999999");
 init("score", "-999999");
 init("title", "false");
 init("queryexpansion", "false");
+init ("andor","false");
+init ("qe","false");
 
 $time = $_GET["time"];
 $query = htmlspecialchars($_GET["query"]); 
 $score =$_GET["score"];
 $title =$_GET["title"];
-
-if (strcmp($query,"")!=0)
+$andor = $_GET["andor"];
+$qe = $_GET["qe"];
+if(!empty($query))
 {
 chdir("C:\Users\NMING7\Desktop\cuhk-information-retrieval");
-$cmd = "java -jar C:\Users\NMING7\Desktop\cuhk-information-retrieval\search.jar "."$query ". " $title". " $score". " $time"." 2>&1";
+$cmd = "java -jar C:\Users\NMING7\Desktop\cuhk-information-retrieval\search.jar "."$query ". " $title". " $score". " $time"." $andor "." 2>&1";
 exec($cmd, $output);
+echo "$cmd";
 }
 else
  $output = "";
@@ -64,7 +68,7 @@ else
             <div class="input-group">
               <input type="text" class="form-control" placeholder="Query" id="query" name="query" value=
 			  <?php
-			  echo "$query";
+			  echo "\"$query\"";
 			  ?>
 			  
 			  >  <!-- Pass to $query -->
@@ -77,10 +81,10 @@ else
             <div class="input-group">
               <label>Time range</label>   <!-- Pass to $time -->
               <select class="form-control" id="time" name="time">   
-                <option value="999999999">All</option>
-                <option value="week">Within 1 week</option>
-                <option value="month">Within 1 month</option>
-                <option value="year">Within 1 year</option>
+                <option <?php if (strcmp($time,"999999999")==0) echo ' selected '; ?>value="999999999" >All</option>
+                <option <?php if (strcmp($time,"47304000")==0) echo ' selected '; ?>value="47304000">Within half year</option>
+                <option <?php if (strcmp($time,"63072000")==0) echo ' selected '; ?>value="63072000">Within 1 year</option>
+				<option <?php if (strcmp($time,"94608000")==0) echo ' selected '; ?>value="94608000">Within 2 year</option>
               </select>
             </div><!-- /input-group -->
           </div><!-- /.col-lg-2 -->
@@ -88,10 +92,10 @@ else
             <div class="input-group">
               <label>Score range</label> <!-- Pass to $score -->
               <select class="form-control" id="score" name="score">
-                <option value="-999999">No limit</option>
-                <option value="0">Positive score</option>
-                <option value="50">Above 50</option>
-                <option value="100">Above 100</option>
+                <option <?php if (strcmp($score,"-999999")==0) echo ' selected '; ?>value="-999999">No limit</option>
+                <option <?php if (strcmp($score,"0")==0) echo ' selected '; ?>value="0">Positive score</option>
+                <option <?php if (strcmp($score,"50")==0) echo ' selected '; ?>value="50">Above 50</option>
+                <option <?php if (strcmp($score,"100")==0) echo ' selected '; ?>value="100">Above 100</option>
               </select>
             </div><!-- /input-group -->
           </div><!-- /.col-lg-2 -->
@@ -99,14 +103,21 @@ else
             <div class="input-group"> <!-- Pass to $title -->
               <label>Abstruct control</label>
               <select class="form-control" id="title" name="title">
-                <option value="false">Title only</option>
-                <option value="true">Title and content</option>
+                <option <?php if (strcmp($title,"false")==0) echo ' selected '; ?>value="false">Title only</option>
+                <option <?php if (strcmp($title,"true")==0) echo ' selected '; ?>value="true">Title and content</option>
               </select>
             </div><!-- /input-group -->
           </div><!-- /.col-lg-2 -->
+		  <div class="col-lg-2">
+            <div class="radio">
+              <label><input type="radio" value="false" name="andor" id="andor" <?php if (strcmp($andor,"false")==0) echo ' checked '; ?>> Use or</label>
+			  <label><input type="radio" value="true" name="andor" id="andor" <?php if (strcmp($andor,"true")==0) echo ' checked '; ?>> Use and</label>
+            </div><!-- /.col-lg-2 -->
+		  </div>
           <div class="col-lg-2">
-            <div class="checkbox">
-              <label><input type="checkbox" value="true" id="queryexpansion"> Query expansion</label>
+            <div class="radio">
+              <label><input type="radio" value="false" <?php if (strcmp($qe,"false")==0) echo ' checked '; ?>name="queryexpansion" id="queryexpansion">No Query expansion</label>
+			  <label><input type="radio" value="true" <?php if (strcmp($qe,"true")==0) echo ' checked '; ?>name="queryexpansion" id="queryexpansion"> Query expansion</label>
             </div>
           </div><!-- /.col-lg-2 -->
         </form>
@@ -150,10 +161,6 @@ else
 				{
 					$j++;
 				}
-				else
-				{
-						;
-				}
 			}
 			
 			if ($j==4)
@@ -162,7 +169,7 @@ else
 				echo "<div class=\"row\">";
 				echo "<div class=\"col-lg-12\"><dl> <dt><a href=\"".$out_link."\">".$out_title."</a></dt>";
 				echo "<dd style=\"color:forestgreen\">".$out_time."</dd>";
-				echo "<dd><span style=\"color:gray\">".$out_link."- </span><br>".$out_content."</dd> </dl></div></div>";
+				echo "<dd><span style=\"color:gray\">".$out_link." </span><br>".$out_content."</dd> </dl></div></div>";
 			}
 		
 		

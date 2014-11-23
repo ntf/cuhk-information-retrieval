@@ -59,17 +59,24 @@ public class Searcher {
 		//System.out.println("Ready");
 
 		Index index = indexer.getIndex();
-		String query = args[0];   // Query Entry
+		;
+		String query ="";  // Query Entry
+		int aa=0;
+		for (aa=0;aa<args.length-4;aa++)
+			query += (args[aa]+" ");
+		//System.out.println(query);
 		String field = "title"; 
-		Boolean searchComment = Boolean.valueOf(args[1]);
-		int scoreLimit = Integer.parseInt(args[2]);
-		int timeLimit = Integer.parseInt(args[3]);
+		boolean searchComment = Boolean.valueOf(args[args.length-4]);
+		int scoreLimit = Integer.parseInt(args[args.length-3]);
+		int timeLimit = Integer.parseInt(args[args.length-2]);
+		boolean andor = Boolean.valueOf(args[args.length-1]);
 		//August 15-20 of August 2013
 		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
 
 		int q_termid;
-		
+		int firstdoc=0;
 		Set<Integer> doc_to_score = new TreeSet<>();
+		Set<Integer> temp_doc2 = new TreeSet<>();
 		HashMap<Integer, Integer> qmap = new HashMap<Integer, Integer>();
 		HashMap<Integer, Integer> postingList = new HashMap<Integer, Integer>();
 		long oldtime = 0;
@@ -77,7 +84,7 @@ public class Searcher {
 		
 		
 		for (String querkToken : tokens) {
-			
+			//System.out.println("zz");
 			q_termid = index.getTermId(querkToken);
 			if (q_termid >= 0) {
 				if (!qmap.containsKey(q_termid)) {
@@ -90,11 +97,30 @@ public class Searcher {
 				if ( postingList == null)
 					continue;									
 				//System.out.println(querkToken + " term id is " + q_termid + ", posting list size = " + postingList.size());
-				
+				//System.out.println(postingList);
 				for (Integer docID : postingList.keySet())
 				{
-					doc_to_score.add(docID);
+					
+						if(firstdoc==0)
+						{
+							doc_to_score.add(docID);
+							
+						}
+						else if(andor)
+						{
+							temp_doc2.add(docID);
+							
+						}
+						else
+						{
+							doc_to_score.add(docID);
+						}
 				}
+				
+				if (andor && firstdoc ==1)
+				doc_to_score.retainAll(temp_doc2); // AND
+				
+				firstdoc =1;
 				
 			}
 			 else {
@@ -103,18 +129,68 @@ public class Searcher {
 			}
 		}
 		
+		
+		//System.out.println(doc_to_score);
+		
 		HashMap<Integer,Double> score_map = new HashMap<Integer,Double>();
 		
 		for (Integer docID : doc_to_score)
 		{
-			
 			double score =scorer.rsv(indexer.getIndex(), qmap, docID, field);
 				score_map.put(docID,score);
 		}
+		
 		//System.out.println("-----");
 		if (searchComment){ // Need to search with comment
-		
+			doc_to_score.clear();
+			temp_doc2.clear();
 			field = "content";
+			firstdoc=0;
+			
+			for (String querkToken : tokens) {
+				//System.out.println("zz");
+				q_termid = index.getTermId(querkToken);
+				if (q_termid >= 0) {
+					if (!qmap.containsKey(q_termid)) {
+						qmap.put(q_termid, 1);
+					}
+					else
+						qmap.put(q_termid, qmap.get(q_termid) + 1);
+					
+					postingList = index.getPositingList(field, q_termid);
+					if ( postingList == null)
+						continue;									
+					//System.out.println(querkToken + " term id is " + q_termid + ", posting list size = " + postingList.size());
+					//System.out.println(postingList);
+					for (Integer docID : postingList.keySet())
+					{
+						
+							if(firstdoc==0)
+							{
+								doc_to_score.add(docID);
+							}
+							else if(andor)
+							{
+								temp_doc2.add(docID);
+								}
+							else
+							{
+								doc_to_score.add(docID);
+							}
+					}
+					
+					if (andor && firstdoc ==1)
+					doc_to_score.retainAll(temp_doc2); // AND
+					
+					firstdoc =1;
+					
+				}
+				 else {
+					 //System.out.println("Token no in indexer : " + querkToken);
+					 continue;
+				}
+			}
+			
 			for (Integer docID : doc_to_score){
 				double score =scorer.rsv(indexer.getIndex(), qmap, docID, field);
 				if (!score_map.containsKey(docID)) {
@@ -123,7 +199,9 @@ public class Searcher {
 				else
 					score_map.put(docID,score_map.get(docID)+score);
 			}
+
 		}
+		
 
 		ArrayList<Similarity> result = new ArrayList<Similarity>();
 		for (Integer docID : score_map.keySet()) {
@@ -141,11 +219,31 @@ public class Searcher {
 		// TOP 10
 		System.out.println(String.format("%.02f",(System.nanoTime() - oldtime)*Math.pow(10,-6)) + "ms");
 
+		
+		
 		int j=0;
 		int i=0;
-		while (i<result.size()){
+		
+		while(i<result.size())
+		{
+			if (Integer.parseInt(doc.getField("score"))< scoreLimit)
+			{
+				continue;
+			}
+			double doc_time = Double.parseDouble(doc.getField("created_utc"));
+			//System.out.println(Math.abs((  ( System.currentTimeMillis() / 1000l))- doc_time)+ "  "+ doc_time);
+			if (Math.abs((  ( System.currentTimeMillis() / 1000l))- doc_time) > timeLimit)
+			{
+				//System.out.println("skip");
+				continue;
+			}
+			
+		}
+		i=0;
+		
+		while (i<result.size() && j<25){
 			Document doc;
-			doc = index.getDocument(result.get(j).docID1);
+			doc = index.getDocument(result.get(i).docID1);
 			i++;
 			//System.out.println( doc.getField("score"));
 			if (Integer.parseInt(doc.getField("score"))< scoreLimit)
@@ -153,9 +251,10 @@ public class Searcher {
 				continue;
 			}
 			double doc_time = Double.parseDouble(doc.getField("created_utc"));
-			if (Math.abs(( doc_time- ( System.currentTimeMillis() / 1000l))) > timeLimit)
+			//System.out.println(Math.abs((  ( System.currentTimeMillis() / 1000l))- doc_time)+ "  "+ doc_time);
+			if (Math.abs((  ( System.currentTimeMillis() / 1000l))- doc_time) > timeLimit)
 			{
-				System.out.println("skip");
+				//System.out.println("skip");
 				continue;
 			}
 
@@ -165,24 +264,90 @@ public class Searcher {
 			System.out.println(",");
 			System.out.println( doc.getField("title"));
 			System.out.println(",");
-			System.out.println(df.format(currentDate));
+			System.out.print(df.format(currentDate)); System.out.print("   Number of comment: "+ doc.getField("num_comments")); System.out.println("   Post score: "+ doc.getField("score"));
 			System.out.println(",");
 			System.out.println( doc.getField("permalink"));
 			System.out.println(",");
-
+			
+			
+			
 			
 			StringTokenizer st1= new StringTokenizer(doc.getField("content"));
-			int hh=0;
-            while (st1.hasMoreTokens() && hh<35){
-                System.out.print(st1.nextToken()+" ");
-                hh++;
-            }
-            System.out.println("");
+
+			int abs =0;
+			List<Integer> keyword_pos = new ArrayList<Integer>();
+			while (st1.hasMoreTokens())
+			{
+				
+				String ss = st1.nextToken();
+				StringTokenizer st2= new StringTokenizer(query);
+				
+				while (st2.hasMoreTokens())
+				{
+
+					String qss = st2.nextToken();
+					if (qss.equals(ss))
+					{
+						keyword_pos.add(abs);
+					}
+					
+				}
+				abs++;
+			}
+			
+
+			List<String> content = new ArrayList<String>();
+			
+			st1= new StringTokenizer(doc.getField("content"));
+			while (st1.hasMoreTokens()){
+				content.add(st1.nextToken());
+			}
+			
+			for (int pos : keyword_pos)
+			{
+				
+				
+				int nowpos= pos - 5;
+				int count=0;
+				if (pos>5)
+				{
+					System.out.print("...");
+				}
+				
+				while (count<10)
+				{
+					if (nowpos>=0 && nowpos<content.size())
+					{
+						System.out.print(content.get(nowpos)+" ");
+					}
+
+					
+				count++;
+				nowpos++;
+				}
+				
+				if (pos<content.size()-5)
+				{
+					System.out.print("...");
+				}
+				System.out.println("");
+			}
+			if (keyword_pos.size()==0)
+			{
+				int count=0;
+				while (count<35 && count<content.size())
+				{
+				System.out.print(content.get(count)+" ");
+				count++;
+				}
+				System.out.println("");
+			}
 			System.out.println(",");
+
 			j++;
 			
 		}
-		System.out.println(j);
+		System.out.println(result.size());
 		//System.out.println("--DONE--");
 	}
 	

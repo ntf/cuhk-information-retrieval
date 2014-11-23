@@ -1,6 +1,7 @@
-package engg5106.ir.queryexpansion;
+package engg5106.ir;
 
 import edu.smu.tspell.wordnet.*;
+
 import java.util.*;
 
 /**
@@ -11,8 +12,8 @@ public class QueryExpansion {
 
         private String query = null;
 
-	public QueryExpansion(String s) {
-		this.query = s;
+	public QueryExpansion() {
+
 		QueryExpansion.setDictionaryPath("test/WordNet-3.0/dict/");
 	}
 
@@ -20,12 +21,13 @@ public class QueryExpansion {
 		System.setProperty("wordnet.database.dir", path);
 	}
 
-	public HashSet<String> expand() {
+	public HashSet<String> expand(String q) {
+		QueryExpansion.setDictionaryPath("test/WordNet-3.0/dict/");
 		WordNetDatabase database = WordNetDatabase.getFileInstance();
 		HashSet<String> synonyms = new HashSet<String>();
 
 		
-		Synset[] synsets = database.getSynsets(this.query);
+		Synset[] synsets = database.getSynsets(q);
 		for (int i = 0; i < synsets.length; i++) {
 			String[] wordForms;
 			wordForms = synsets[i].getWordForms();

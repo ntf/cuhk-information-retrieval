@@ -19,6 +19,8 @@ import java.util.TreeSet;
 
 
 
+
+
 import engg5106.ir.bm25.bm25;
 import engg5106.ir.indexer.Index;
 import engg5106.ir.indexer.IndexOptions;
@@ -64,34 +66,58 @@ public class Searcher {
 		;
 		String query ="";  // Query Entry
 		int aa=0;
-		for (aa=0;aa<args.length-5;aa++)
+		for (aa=0;aa<args.length-6;aa++)
 			query += (args[aa]+" ");
-                
-                
 		//System.out.println(query);
 		String field = "title"; 
+		int result_length = Integer.parseInt(args[args.length-6]);
 		boolean searchComment = Boolean.valueOf(args[args.length-5]);
 		int scoreLimit = Integer.parseInt(args[args.length-4]);
 		int timeLimit = Integer.parseInt(args[args.length-3]);
 		boolean andor = Boolean.valueOf(args[args.length-2]);
 		boolean qe = Boolean.valueOf(args[args.length-1]);
-                
-                // Query Expansion
-                if (qe) {
-                    HashSet<String> expandedQuery = new HashSet<String>();
-
-                    QueryExpansion originalQuery = new QueryExpansion(query);
-                    expandedQuery = originalQuery.expand();
-                    query = "";
-                    for (String s : expandedQuery) {
-                        query += (s + " ");
-                    }
-                }
-                
 		//August 15-20 of August 2013
-		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
+		
+
+        // Query Expansion
+        if (qe) {
+        	
+        	StringTokenizer st1= new StringTokenizer(query);
+			while (st1.hasMoreTokens()){
+	            HashSet<String> expandedQuery = new HashSet<String>();
+
+	            QueryExpansion originalQuery = new QueryExpansion(st1.nextToken());
+	            expandedQuery = originalQuery.expand();
+	            query = "";
+	            for (String s : expandedQuery) {
+	                query += (s + " ");
+	                
+	            }
+	            //System.out.println(expandedQuery);
+			}
+        	
+
+           
+        }
+        List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
+        /*
+         * 
+
+		String queryString = "bus";
+		HashSet<String> expandedQuery = new HashSet<String>();
+
+		QueryExpansion query = new QueryExpansion(queryString);
+		expandedQuery = query.expand();
+		for (String s : expandedQuery) {
+			System.out.println(s);
+		}
+	}
+         */
         
-        // System.out.println(query);
+        System.out.println();
+        
+        
+         
         
 		int q_termid;
 		int firstdoc=0;
@@ -262,7 +288,7 @@ public class Searcher {
 				continue;
 			}
 			k++;
-			if (j<25)
+			if (j<result_length)
 			{
 			Date currentDate = new Date((long)doc_time*1000 - 28800000);
 			DateFormat df = new SimpleDateFormat("dd-MM-yyyy 'at' HH:mm:ss ");

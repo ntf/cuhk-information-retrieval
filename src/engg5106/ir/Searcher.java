@@ -62,14 +62,15 @@ public class Searcher {
 		;
 		String query ="";  // Query Entry
 		int aa=0;
-		for (aa=0;aa<args.length-4;aa++)
+		for (aa=0;aa<args.length-5;aa++)
 			query += (args[aa]+" ");
 		//System.out.println(query);
 		String field = "title"; 
-		boolean searchComment = Boolean.valueOf(args[args.length-4]);
-		int scoreLimit = Integer.parseInt(args[args.length-3]);
-		int timeLimit = Integer.parseInt(args[args.length-2]);
-		boolean andor = Boolean.valueOf(args[args.length-1]);
+		boolean searchComment = Boolean.valueOf(args[args.length-5]);
+		int scoreLimit = Integer.parseInt(args[args.length-4]);
+		int timeLimit = Integer.parseInt(args[args.length-3]);
+		boolean andor = Boolean.valueOf(args[args.length-2]);
+		boolean qe = Boolean.valueOf(args[args.length-1]);
 		//August 15-20 of August 2013
 		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
 
@@ -223,25 +224,9 @@ public class Searcher {
 		
 		int j=0;
 		int i=0;
+		int k=0;
 		
-		while(i<result.size())
-		{
-			if (Integer.parseInt(doc.getField("score"))< scoreLimit)
-			{
-				continue;
-			}
-			double doc_time = Double.parseDouble(doc.getField("created_utc"));
-			//System.out.println(Math.abs((  ( System.currentTimeMillis() / 1000l))- doc_time)+ "  "+ doc_time);
-			if (Math.abs((  ( System.currentTimeMillis() / 1000l))- doc_time) > timeLimit)
-			{
-				//System.out.println("skip");
-				continue;
-			}
-			
-		}
-		i=0;
-		
-		while (i<result.size() && j<25){
+		while (i<result.size()){
 			Document doc;
 			doc = index.getDocument(result.get(i).docID1);
 			i++;
@@ -257,7 +242,9 @@ public class Searcher {
 				//System.out.println("skip");
 				continue;
 			}
-
+			k++;
+			if (j<25)
+			{
 			Date currentDate = new Date((long)doc_time*1000 - 28800000);
 			DateFormat df = new SimpleDateFormat("dd-MM-yyyy 'at' HH:mm:ss ");
 				
@@ -345,9 +332,9 @@ public class Searcher {
 			System.out.println(",");
 
 			j++;
-			
+			}
 		}
-		System.out.println(result.size());
+		System.out.println(k);
 		//System.out.println("--DONE--");
 	}
 	

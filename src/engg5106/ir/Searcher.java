@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -74,6 +75,20 @@ public class Searcher {
 		//August 15-20 of August 2013
 		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
 
+        // Query Expansion
+        if (qe) {
+            HashSet<String> expandedQuery = new HashSet<String>();
+            
+            QueryExpansion originalQuery = new QueryExpansion(query);
+            expandedQuery = originalQuery.expand();
+            query.setText("");
+            for (String s : expandedQuery) {
+                query += (s + " ");
+            }
+        }
+        
+        // System.out.println(query);
+        
 		int q_termid;
 		int firstdoc=0;
 		Set<Integer> doc_to_score = new TreeSet<>();

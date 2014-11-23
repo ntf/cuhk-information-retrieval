@@ -22,6 +22,7 @@ import java.util.TreeSet;
 import engg5106.ir.bm25.bm25;
 import engg5106.ir.indexer.Index;
 import engg5106.ir.indexer.IndexOptions;
+import engg5106.ir.queryexpansion.QueryExpansion;
 
 /**
  * Extend this class to search the index
@@ -65,6 +66,8 @@ public class Searcher {
 		int aa=0;
 		for (aa=0;aa<args.length-5;aa++)
 			query += (args[aa]+" ");
+                
+                
 		//System.out.println(query);
 		String field = "title"; 
 		boolean searchComment = Boolean.valueOf(args[args.length-5]);
@@ -72,20 +75,21 @@ public class Searcher {
 		int timeLimit = Integer.parseInt(args[args.length-3]);
 		boolean andor = Boolean.valueOf(args[args.length-2]);
 		boolean qe = Boolean.valueOf(args[args.length-1]);
+                
+                // Query Expansion
+                if (qe) {
+                    HashSet<String> expandedQuery = new HashSet<String>();
+
+                    QueryExpansion originalQuery = new QueryExpansion(query);
+                    expandedQuery = originalQuery.expand();
+                    query = "";
+                    for (String s : expandedQuery) {
+                        query += (s + " ");
+                    }
+                }
+                
 		//August 15-20 of August 2013
 		List<String> tokens = index.tokenize(index.getAnalyzer(), query); // Normalized query
-
-        // Query Expansion
-        if (qe) {
-            HashSet<String> expandedQuery = new HashSet<String>();
-            
-            QueryExpansion originalQuery = new QueryExpansion(query);
-            expandedQuery = originalQuery.expand();
-            query.setText("");
-            for (String s : expandedQuery) {
-                query += (s + " ");
-            }
-        }
         
         // System.out.println(query);
         

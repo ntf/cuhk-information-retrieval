@@ -9,9 +9,9 @@ import java.util.*;
  */
 public class QueryExpansion {
 
-	private String query = null;
+        private String query = null;
 
-	QueryExpansion(String s) {
+	public QueryExpansion(String s) {
 		this.query = s;
 		QueryExpansion.setDictionaryPath("WordNet-3.0/dict/");
 	}

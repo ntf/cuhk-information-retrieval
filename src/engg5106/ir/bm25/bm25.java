@@ -38,7 +38,7 @@ public class bm25 {
 			ld = 0;
 		//System.out.println(ld);
 		
-		lave = ind.getAverageDocumentLength("title");
+		lave = ind.getAverageDocumentLength(field);
 		lave = lave / n;
 		
 		for (int queryTerm : query_map.keySet()) {

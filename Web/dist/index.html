@@ -1,17 +1,31 @@
 <?php
 
 function init($var, $defaultVal){
-  if (!isset($_POST[$var])) {
-    $_POST[$var] = $defaultVal;
+  if (!isset($_GET[$var])) {
+    $_GET[$var] = $defaultVal;
   }
 }
 
 // Set default values
+init("query", "");
 init("time", "999999999");
 init("score", "-999999");
 init("title", "false");
 init("queryexpansion", "false");
 
+$time = $_GET["time"];
+$query = htmlspecialchars($_GET["query"]); 
+$score =$_GET["score"];
+$title =$_GET["title"];
+
+if (strcmp($query,"")!=0)
+{
+chdir("C:\Users\NMING7\Desktop\cuhk-information-retrieval");
+$cmd = "java -jar C:\Users\NMING7\Desktop\cuhk-information-retrieval\search.jar "."$query ". " $title". " $score". " $time"." 2>&1";
+exec($cmd, $output);
+}
+else
+ $output = "";
 ?>
 
 <!DOCTYPE html>
@@ -45,10 +59,15 @@ init("queryexpansion", "false");
     </div>
     <div class="container">
       <div class="row">
-        <form role="form" method="POST">
+        <form role="form" method="GET" action="">
           <div class="col-lg-4">
             <div class="input-group">
-              <input type="text" class="form-control" placeholder="Query" id="query">  <!-- Pass to $query -->
+              <input type="text" class="form-control" placeholder="Query" id="query" name="query" value=
+			  <?php
+			  echo "$query";
+			  ?>
+			  
+			  >  <!-- Pass to $query -->
               <span class="input-group-btn">
                 <button type="submit" class="btn btn-success">Go!</button>
               </span>
@@ -57,7 +76,7 @@ init("queryexpansion", "false");
           <div class="col-lg-2">
             <div class="input-group">
               <label>Time range</label>   <!-- Pass to $time -->
-              <select class="form-control" id="time">   
+              <select class="form-control" id="time" name="time">   
                 <option value="999999999">All</option>
                 <option value="week">Within 1 week</option>
                 <option value="month">Within 1 month</option>
@@ -68,7 +87,7 @@ init("queryexpansion", "false");
           <div class="col-lg-2">
             <div class="input-group">
               <label>Score range</label> <!-- Pass to $score -->
-              <select class="form-control" id="score">
+              <select class="form-control" id="score" name="score">
                 <option value="-999999">No limit</option>
                 <option value="0">Positive score</option>
                 <option value="50">Above 50</option>
@@ -79,7 +98,7 @@ init("queryexpansion", "false");
           <div class="col-lg-2">
             <div class="input-group"> <!-- Pass to $title -->
               <label>Abstruct control</label>
-              <select class="form-control" id="title">
+              <select class="form-control" id="title" name="title">
                 <option value="false">Title only</option>
                 <option value="true">Title and content</option>
               </select>
@@ -93,22 +112,69 @@ init("queryexpansion", "false");
         </form>
       </div><!-- row -->
       <div class="row"><div class="col-lg-12"><br></div></div>
-      <div class="row">
-        <div class="col-lg-12">
-          <dl>
-            <dt><a href="http://www.reddit.com/r/4chan/comments/17i44l/anons_office_romance/">Anon's office romance</a></dt>
-            <dd style="color:forestgreen">http://www.reddit.com/r/4chan/comments/17i44l/anons_office_romance/</dd>
-            <dd><span style="color:gray">1359478125.0 - </span>Just think about it, maybe if OP had asked her out earlier she would have been on a date with</dd>
-          </dl>
-        </div><!-- row -->
-        <div class="col-lg-12">
-          <dl>
-            <dt><a href="http://well-bend-me-over-and-fuckme.tumblr.com/post/41854310816/talesof4chan-anons-office-romance">This is a Title. (talesof4chan: Anon's office romance...)</a></dt>
-            <dd style="color:forestgreen">http://well-bend-me-over-and-fuckme.tumblr.com/post/41854310816/talesof4chan-anons-office-romance</dd>
-            <dd><span style="color:gray"></span>talesof4chan: Anon's office romancehttp://talesof4chan.tumblr.com/ · talesof4chan : Anon's office romance http://talesof4chan.tumblr.com/. (via flutterjedi- deactivated20140413). — 1 year ago with 42 notes · dickbutt-mcgee likes this.</dd>
-          </dl>
-        </div><!-- row -->
-      </div>
+	  
+		<?php
+		if (strcmp(gettype($output),"array")==0)
+		{
+		echo "Query search time :$output[0]　　　　　  ";
+		$asize = count($output)-1;
+		echo "Total result found : $output[$asize]";
+		$j=0;
+		$i=2;
+		
+		
+		while ($i < count($output)-1)
+		{
+			if (strcmp($output[$i],",")==0)
+			{
+				;
+			}
+			else
+			{
+				switch($j)	{
+				case 0:
+				$out_title = $output[$i];
+				break;
+				case 1:
+				$out_time = $output[$i];
+				break;
+				case 2:
+				$out_link= $output[$i];
+				break;
+				case 3:
+				$out_content = $output[$i];
+				break;
+				
+				}
+				if (strcmp($output[$i+1],",")==0)
+				{
+					$j++;
+				}
+				else
+				{
+						;
+				}
+			}
+			
+			if ($j==4)
+			{
+				$j=0;
+				echo "<div class=\"row\">";
+				echo "<div class=\"col-lg-12\"><dl> <dt><a href=\"".$out_link."\">".$out_title."</a></dt>";
+				echo "<dd style=\"color:forestgreen\">".$out_time."</dd>";
+				echo "<dd><span style=\"color:gray\">".$out_link."- </span><br>".$out_content."</dd> </dl></div></div>";
+			}
+		
+		
+			$i++;
+		}
+		
+		print_r($output);
+		}		
+		?>
+		
+
+      
     </div>
 
 

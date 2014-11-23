@@ -13,7 +13,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
+
 
 
 import engg5106.ir.bm25.bm25;
@@ -137,10 +139,11 @@ public class Searcher {
 		});
 
 		// TOP 10
+		System.out.println(String.format("%.02f",(System.nanoTime() - oldtime)*Math.pow(10,-6)) + "ms");
 
 		int j=0;
 		int i=0;
-		while (i<result.size() && j<10){
+		while (i<result.size()){
 			Document doc;
 			doc = index.getDocument(result.get(j).docID1);
 			i++;
@@ -166,13 +169,21 @@ public class Searcher {
 			System.out.println(",");
 			System.out.println( doc.getField("permalink"));
 			System.out.println(",");
-			System.out.println(doc.getField("content").substring(0,100));
+
+			
+			StringTokenizer st1= new StringTokenizer(doc.getField("content"));
+			int hh=0;
+            while (st1.hasMoreTokens() && hh<35){
+                System.out.print(st1.nextToken()+" ");
+                hh++;
+            }
+            System.out.println("");
 			System.out.println(",");
 			j++;
 			
 		}
-		System.out.println("Time use:"+ String.format("%.02f",(System.nanoTime() - oldtime)*Math.pow(10,-6)) + "ms");
-		System.out.println("--DONE--");
+		System.out.println(j);
+		//System.out.println("--DONE--");
 	}
 	
 

@@ -1,5 +1,7 @@
 package engg5106.ir.bm25;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
@@ -37,6 +39,9 @@ public class bm25 {
 		else
 			ld = 0;
 		//System.out.println(ld);
+
+		double doc_time = Double.parseDouble(ind.getDocument(docid).getField("created_utc"));
+		int score = Integer.parseInt(ind.getDocument(docid).getField("score"));
 		
 		lave = ind.getAverageDocumentLength(field);
 		lave = lave / n;
@@ -54,7 +59,26 @@ public class bm25 {
 			else
 				def_rsv += 0;
 		}
-
+		double month = Math.abs((( System.currentTimeMillis() / 1000l))- doc_time) / 2592000;
+		
+		//NumberFormat formatter = new DecimalFormat("#.#######");  
+		
+		//System.out.println("Org :" + formatter.format(def_rsv));
+		month-=17;
+		
+		if (score >0 && score<100)
+		{
+			def_rsv += def_rsv*0.001*score;
+		}
+		else
+		{
+			def_rsv += def_rsv*0.1;
+		}
+		
+		//System.out.println("Month :" + month + " month :" + formatter.format(def_rsv*0.25*(1/month)));
+		def_rsv = def_rsv  + def_rsv*0.25*(1/month);
+		//System.out.println("New :" + formatter.format(def_rsv));
+		//System.out.println();
 		return def_rsv;
 	}
 

@@ -81,7 +81,7 @@ public class Searcher {
 
         // Query Expansion
         if (qe) {
-        	
+        	andor= false;
         	StringTokenizer st1= new StringTokenizer(query);
 			while (st1.hasMoreTokens()){
 	            HashSet<String> expandedQuery = new HashSet<String>();

@@ -1,0 +1,3 @@
+There are two crawlers: crawler.py and processor.py, implememted with Python 2.7.6
+For crawler.py, a run.py is needed for execution. First, import crawler import Crawler, CrawlerCache. Then create a crawler object. After that, crawl files from reddit by calling the method "crawl('http://www.reddit.com/')" and the output file will appear beside crawler.py.
+For processor.py, it is required to put all CSV file from the project "https://github.com/umbrae/reddit-top-2.5-million/" inside a directory "data/" beside processor.py. Finally, just simply type "./processor" on the command line and the program will execute itself. The output files will be placed in the directory "result/" beside processor.py
